@@ -375,12 +375,20 @@ merged_state = StateManager.merge_parallel_contexts(research_results)
 - Loads configuration from YAML
 - Resolves environment variables
 - Creates LiteLLM client configurations
+- Supports provider selection via environment variable, command-line, or config file
 
 **Supported Providers**:
 - OpenAI (GPT-4, GPT-3.5-turbo)
 - Google Gemini (gemini-pro, gemini-1.5-pro)
-- Anthropic Claude
+- Anthropic Claude (claude-3-opus, claude-3-sonnet, claude-3-haiku)
 - Ollama (local models)
+- **LM Studio** (local models via OpenAI-compatible API)
+
+**LM Studio Configuration**:
+- Uses OpenAI-compatible API endpoint (default: `http://localhost:1234/v1`)
+- Model name configurable via `LM_STUDIO_MODEL` environment variable
+- Supports any model loaded in LM Studio
+- No API key required (local server)
 
 ### 5.2 Provider Abstraction Design
 
@@ -425,6 +433,138 @@ merged_state = StateManager.merge_parallel_contexts(research_results)
 - LLM errors caught and logged
 - Context preserved on errors
 - Graceful degradation
+
+## 5.5 Integration Configuration System Design
+
+### 5.5.1 Integration Configuration Design
+
+**File**: `src/utils/integration_config.py`
+
+**IntegrationConfig Class**:
+- Manages enable/disable state for data source integrations
+- Loads configuration from YAML file (`config/integrations.yaml`)
+- Supports environment variable overrides (`ENABLE_YAHOO_FINANCE`, `ENABLE_ALPHA_VANTAGE`, `ENABLE_FMP`)
+- Provides data source mapping per data type
+
+**Data Source Mapping**:
+- **stock_price**: Yahoo Finance (preferred) → Alpha Vantage → FMP
+- **company_info**: Yahoo Finance (preferred) → FMP → Alpha Vantage
+- **financial_statements**: FMP (preferred) → Yahoo Finance
+- **news**: Yahoo Finance (preferred) → FMP
+- **historical_data**: Yahoo Finance only
+- **technical_indicators**: Alpha Vantage only
+
+**Configuration Priority**:
+1. Default config file values
+2. Environment variables (override config file)
+3. Command-line arguments (override both)
+
+**Thread Safety**:
+- Read-only integration checks
+- No state mutation during execution
+- Thread-safe for parallel execution
+
+### 5.5.2 Dynamic Prompt Generation Design
+
+**File**: `src/utils/prompt_builder.py`
+
+**PromptBuilder Class**:
+- Generates dynamic prompts based on enabled integrations
+- Removes references to disabled integrations
+- Provides integration availability information to agents
+
+**Key Methods**:
+- `get_enabled_integrations_text()`: Returns formatted list of enabled integrations
+- `get_available_data_sources_text()`: Returns description of available data types
+- `build_reporting_agent_prompt()`: Builds dynamic prompt for Reporting Agent
+- `build_analyst_agent_prompt()`: Builds dynamic prompt for Analyst Agent
+- `build_comparison_agent_prompt()`: Builds dynamic prompt for Comparison Agent
+
+**Agent Integration**:
+- Reporting Agent: Prompts mention only enabled data sources
+- Analyst Agent: Sentiment analysis prompts mention only available news sources
+- Comparison Agent: Comparison prompts mention only available data sources
+
+**Benefits**:
+- Prompts don't confuse LLM with unavailable sources
+- Clearer instructions based on actual capabilities
+- Better error handling (LLM knows what's available)
+
+### 5.5.3 API Call Optimization Design
+
+**Smart Source Selection**:
+- Each data type has preferred integration order
+- System tries preferred source first
+- Falls back to next source only if preferred fails
+
+**Stop After Success**:
+- Once data is successfully retrieved, stops trying other sources
+- Reduces redundant API calls
+- Faster execution times
+- Lower API usage costs
+
+**Parallel Execution Compatibility**:
+- Optimization happens WITHIN each parallel task
+- Each parallel thread optimizes independently
+- No cross-thread interference
+- Parallel execution structure preserved (5 parallel tasks for single symbol, N×5 for multiple symbols)
+
+**Example Flow**:
+```
+Thread 1 (price): Tries Yahoo → succeeds → stops (doesn't try Alpha Vantage/FMP)
+Thread 2 (company): Tries Yahoo → succeeds → stops (doesn't try Alpha Vantage/FMP)
+Both threads complete independently and in parallel ✓
+```
+
+### 5.5.4 API Status Tracking Design
+
+**Progress Event Types**:
+- `api_call_start`: API call initiated
+- `api_call_success`: API call succeeded (✓)
+- `api_call_failed`: API call failed (✗)
+- `api_call_skipped`: API call skipped - integration disabled (⊘)
+
+**Progress Event Structure**:
+```python
+{
+    "event_type": "api_call_success",
+    "integration": "yahoo_finance",
+    "symbol": "AAPL",
+    "data_type": "stock_price",
+    "status": "success",
+    "message": "Yahoo Finance API call succeeded for AAPL",
+    "error": None,
+    "timestamp": "2024-01-15T12:34:56"
+}
+```
+
+**UI Display**:
+- Progress panel shows API call status with indicators
+- ✓ Success indicator for successful calls
+- ✗ Failed indicator for failed calls
+- ⊘ Skipped indicator for disabled integrations
+- API call summary showing success/failed/skipped counts
+
+### 5.5.5 Graceful API Failure Handling Design
+
+**Error Handling Strategy**:
+1. **Integration Disabled**: Skip API call, log as "skipped", continue
+2. **API Rate Limit**: Retry with exponential backoff, if fails mark as "failed", continue
+3. **API Error**: Log error, mark as "failed", try fallback integration
+4. **All Integrations Failed**: Continue with available data, report partial results
+5. **Partial Success**: Include available data in analysis, note missing data in report
+
+**Error Messages**:
+- Detailed error messages for different failure types
+- Clear indication of which integration failed
+- Guidance on how to resolve issues
+- User-friendly error messages in UI
+
+**MCP Client Integration**:
+- MCP clients check integration status before making API calls
+- Disabled integrations return immediately with "skipped" status
+- Enabled integrations attempt API calls with error handling
+- Fallback logic tries next preferred source on failure
 
 ## 6. UI Design
 

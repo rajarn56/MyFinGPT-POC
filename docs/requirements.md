@@ -470,6 +470,179 @@ The system will support switching between providers via configuration, allowing 
 - User-friendly error messages
 - Graceful degradation
 
+### 8.4 Integration Configuration and Control System
+
+#### 8.4.1 Overview
+
+The Integration Configuration and Control System allows users to:
+- Select LLM providers (including LM Studio for local models)
+- Enable/disable specific data source integrations (FMP, Alpha Vantage, Yahoo Finance)
+- Optimize API calls to avoid redundant requests
+- Generate dynamic prompts that honor disabled integrations
+- Handle API failures gracefully with partial data continuation
+- Track and display API call status (success/skip/failed) in progress updates
+
+#### 8.4.2 LLM Provider Selection
+
+**Supported Providers**:
+- OpenAI (GPT-4, GPT-3.5-turbo)
+- Google Gemini (gemini-pro, gemini-1.5-pro)
+- Anthropic Claude (claude-3-opus, claude-3-sonnet, claude-3-haiku)
+- Ollama (local models)
+- **LM Studio** (local models via OpenAI-compatible API)
+
+**Configuration Methods**:
+1. **Environment Variable**: `export LITELLM_PROVIDER=lmstudio`
+2. **Command Line**: `python main.py --llm-provider lmstudio`
+3. **Config File**: Edit `config/llm_templates.yaml` default provider
+
+**LM Studio Setup**:
+1. Install LM Studio from https://lmstudio.ai/
+2. Load a model in LM Studio
+3. Start local server (default port 1234)
+4. Configure environment variables:
+   ```bash
+   export LM_STUDIO_API_BASE=http://localhost:1234/v1
+   export LM_STUDIO_MODEL=your-model-name
+   export LITELLM_PROVIDER=lmstudio
+   ```
+
+#### 8.4.3 Integration Enable/Disable Control
+
+**Configuration File** (`config/integrations.yaml`):
+```yaml
+integrations:
+  yahoo_finance:
+    enabled: true
+    description: "Yahoo Finance data source"
+  
+  alpha_vantage:
+    enabled: true
+    description: "Alpha Vantage API"
+    requires_api_key: true
+  
+  fmp:
+    enabled: true
+    description: "Financial Modeling Prep API"
+    requires_api_key: true
+```
+
+**Environment Variable Overrides**:
+```bash
+export ENABLE_YAHOO_FINANCE=true
+export ENABLE_ALPHA_VANTAGE=false
+export ENABLE_FMP=true
+```
+
+**Command-Line Control**:
+```bash
+# Disable specific integrations
+python main.py --disable-integrations fmp
+
+# Enable only specific integrations
+python main.py --enable-integrations yahoo_finance --disable-integrations fmp,alpha_vantage
+```
+
+**Behavior**:
+- Disabled integrations are automatically skipped (no API calls made)
+- System continues with available data sources
+- Progress events show skipped integrations with ⊘ indicator
+- Prompts dynamically generated to only mention enabled integrations
+
+#### 8.4.4 API Call Optimization
+
+**Smart Source Selection**:
+- Each data type has preferred integration order:
+  - Stock price: Yahoo Finance → Alpha Vantage → FMP
+  - Company info: Yahoo Finance → FMP → Alpha Vantage
+  - Financial statements: FMP → Yahoo Finance
+  - News: Yahoo Finance → FMP
+  - Historical data: Yahoo Finance only
+  - Technical indicators: Alpha Vantage only
+
+**Stop After First Success**:
+- System stops trying other sources once data is successfully retrieved
+- Reduces redundant API calls
+- Faster execution times
+- Lower API usage costs
+
+**Parallel Execution Compatibility**:
+- Optimization happens WITHIN each parallel task
+- Each parallel thread optimizes independently
+- No cross-thread interference
+- Parallel execution structure preserved (5 parallel tasks for single symbol, N×5 for multiple symbols)
+
+#### 8.4.5 Dynamic Prompt Generation
+
+**Prompt Builder** (`src/utils/prompt_builder.py`):
+- Generates prompts dynamically based on enabled integrations
+- Removes references to disabled integrations
+- Updates agent instructions to only mention available data sources
+- Provides integration availability information to agents
+
+**Agent Integration**:
+- Reporting Agent: Prompts mention only enabled data sources
+- Analyst Agent: Sentiment analysis prompts mention only available news sources
+- Comparison Agent: Comparison prompts mention only available data sources
+
+**Benefits**:
+- Prompts don't confuse LLM with unavailable sources
+- Clearer instructions based on actual capabilities
+- Better error handling (LLM knows what's available)
+
+#### 8.4.6 API Status Tracking
+
+**Progress Event Types**:
+- `api_call_start`: API call initiated
+- `api_call_success`: API call succeeded (✓)
+- `api_call_failed`: API call failed (✗)
+- `api_call_skipped`: API call skipped - integration disabled (⊘)
+
+**Progress Event Structure**:
+```python
+{
+    "event_type": "api_call_success",
+    "integration": "yahoo_finance",
+    "symbol": "AAPL",
+    "data_type": "stock_price",
+    "status": "success",
+    "message": "Yahoo Finance API call succeeded for AAPL",
+    "error": None,
+    "timestamp": "2024-01-15T12:34:56"
+}
+```
+
+**UI Display**:
+- Progress panel shows API call status with indicators
+- ✓ Success indicator for successful calls
+- ✗ Failed indicator for failed calls
+- ⊘ Skipped indicator for disabled integrations
+- API call summary showing success/failed/skipped counts
+
+#### 8.4.7 Graceful API Failure Handling
+
+**Error Handling Strategy**:
+1. **Integration Disabled**: Skip API call, log as "skipped", continue
+2. **API Rate Limit**: Retry with exponential backoff, if fails mark as "failed", continue
+3. **API Error**: Log error, mark as "failed", try fallback integration
+4. **All Integrations Failed**: Continue with available data, report partial results
+5. **Partial Success**: Include available data in analysis, note missing data in report
+
+**Error Messages**:
+- Detailed error messages for different failure types
+- Clear indication of which integration failed
+- Guidance on how to resolve issues
+- User-friendly error messages in UI
+
+#### 8.4.8 Configuration Priority
+
+Configuration is applied in this order (later overrides earlier):
+1. Default config file values (`config/integrations.yaml`)
+2. Environment variables (`ENABLE_YAHOO_FINANCE`, etc.)
+3. Command-line arguments (`--enable-integrations`, `--disable-integrations`)
+
+This allows flexible configuration for different environments and use cases.
+
 ## 9. Project Structure
 
 ```

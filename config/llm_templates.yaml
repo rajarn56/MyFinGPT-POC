@@ -25,6 +25,12 @@ ollama:
   temperature: 0.7
   max_tokens: 4000
 
+lmstudio:
+  model: "${LM_STUDIO_MODEL:-local-model}"
+  api_base: "${LM_STUDIO_API_BASE:-http://localhost:1234/v1}"
+  temperature: 0.7
+  max_tokens: 4000
+
 # Default provider (can be overridden via environment variable)
 default:
   provider: "openai"

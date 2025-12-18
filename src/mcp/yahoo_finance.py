@@ -20,13 +20,40 @@ class YahooFinanceClient(MCPBaseClient):
     
     def get_stock_price(self, symbol: str) -> Dict[str, Any]:
         """
-        Get current stock price and basic info
+        Get current stock price and real-time market data for a stock symbol.
+        
+        This method retrieves real-time or near-real-time stock price data including current price,
+        previous close, market cap, volume, day high/low, and 52-week high/low.
+        
+        USE THIS METHOD WHEN:
+        - You need current stock price data
+        - You need real-time market data (price, volume, market cap)
+        - You need 52-week high/low for context
+        - You need day trading range (high/low)
+        
+        DO NOT USE THIS METHOD FOR:
+        - Historical price data (use get_historical_data instead)
+        - Financial statements (use get_financials instead)
+        - Company profile information (use get_company_info instead)
         
         Args:
-            symbol: Stock symbol
+            symbol: Stock ticker symbol (e.g., "AAPL", "MSFT", "GOOGL"). Must be valid ticker.
         
         Returns:
-            Stock price data with citation
+            Dictionary containing:
+            - symbol: Stock symbol
+            - current_price: Current trading price (float)
+            - previous_close: Previous day's closing price (float)
+            - market_cap: Market capitalization (int)
+            - volume: Trading volume (int)
+            - day_high: Day's highest price (float)
+            - day_low: Day's lowest price (float)
+            - 52_week_high: 52-week high price (float)
+            - 52_week_low: 52-week low price (float)
+            - timestamp: ISO timestamp of data retrieval
+        
+        Raises:
+            Exception: If symbol is invalid, data unavailable, or API error occurs
         """
         import time
         start_time = time.time()
@@ -74,13 +101,39 @@ class YahooFinanceClient(MCPBaseClient):
     
     def get_company_info(self, symbol: str) -> Dict[str, Any]:
         """
-        Get company information
+        Get company profile and business information for a stock symbol.
+        
+        This method retrieves company profile data including business description, sector,
+        industry classification, employee count, headquarters location, and website.
+        
+        USE THIS METHOD WHEN:
+        - You need company profile and business description
+        - You need sector/industry classification
+        - You need company metadata (employees, location, website)
+        - You need company overview for analysis context
+        
+        DO NOT USE THIS METHOD FOR:
+        - Stock price data (use get_stock_price instead)
+        - Financial statements (use get_financials instead)
+        - Historical price data (use get_historical_data instead)
         
         Args:
-            symbol: Stock symbol
+            symbol: Stock ticker symbol (e.g., "AAPL", "MSFT"). Must be valid ticker.
         
         Returns:
-            Company information with citation
+            Dictionary containing:
+            - symbol: Stock symbol
+            - name: Company full name (str)
+            - sector: Business sector (str, e.g., "Technology", "Healthcare")
+            - industry: Industry classification (str)
+            - description: Company business summary (str)
+            - employees: Number of employees (int)
+            - website: Company website URL (str)
+            - headquarters: Headquarters address (str)
+            - timestamp: ISO timestamp of data retrieval
+        
+        Raises:
+            Exception: If symbol is invalid, company data unavailable, or API error occurs
         """
         try:
             ticker = yf.Ticker(symbol)
@@ -115,14 +168,45 @@ class YahooFinanceClient(MCPBaseClient):
     
     def get_historical_data(self, symbol: str, period: str = "6mo") -> Dict[str, Any]:
         """
-        Get historical price data
+        Get historical stock price data for trend analysis and charting.
+        
+        This method retrieves historical OHLCV (Open, High, Low, Close, Volume) price data
+        for a specified time period. This is the ONLY integration that provides historical data.
+        
+        USE THIS METHOD WHEN:
+        - You need historical price data for trend analysis
+        - You need data for price charts and visualizations
+        - You need to analyze price movements over time
+        - You need OHLCV data for technical analysis
+        
+        DO NOT USE THIS METHOD FOR:
+        - Current stock price (use get_stock_price instead)
+        - Company information (use get_company_info instead)
+        - Financial statements (use get_financials instead)
+        
+        NOTE: This is the ONLY data source that provides historical price data.
+        Other integrations (Alpha Vantage, FMP) do not provide historical data.
         
         Args:
-            symbol: Stock symbol
-            period: Period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
+            symbol: Stock ticker symbol (e.g., "AAPL", "MSFT"). Must be valid ticker.
+            period: Time period for historical data. Valid values:
+                - "1d", "5d": Short-term (1 day, 5 days)
+                - "1mo", "3mo", "6mo": Medium-term (1, 3, 6 months)
+                - "1y", "2y", "5y", "10y": Long-term (1, 2, 5, 10 years)
+                - "ytd": Year-to-date
+                - "max": Maximum available history
+                Default: "6mo"
         
         Returns:
-            Historical data with citation
+            Dictionary containing:
+            - symbol: Stock symbol
+            - period: Requested period
+            - data: List of daily price records with Open, High, Low, Close, Volume
+            - dates: List of date strings (YYYY-MM-DD format)
+            - timestamp: ISO timestamp of data retrieval
+        
+        Raises:
+            Exception: If symbol is invalid, period invalid, data unavailable, or API error occurs
         """
         try:
             ticker = yf.Ticker(symbol)

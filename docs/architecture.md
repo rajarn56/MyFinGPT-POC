@@ -130,6 +130,40 @@ Real-time progress tracking infrastructure:
 - **Event Types**: Agent-level (start/complete) and task-level (start/complete/progress) events
 - **Execution Order**: Tracks agent execution sequence with timing information
 
+### 2.8 Integration Configuration System
+
+Comprehensive configuration system for LLM provider selection and data source integration control:
+
+**Integration Configuration** (`src/utils/integration_config.py`):
+- **IntegrationConfig**: Manages enable/disable state for data source integrations
+- **Configuration Sources**: YAML file (`config/integrations.yaml`) and environment variables
+- **Data Source Mapping**: Preferred integration order per data type (stock_price, company_info, financial_statements, news, historical_data, technical_indicators)
+- **Thread-Safe**: Read-only integration checks ensure parallel execution compatibility
+
+**LLM Provider Configuration** (`src/utils/llm_config.py`):
+- **LLMConfig**: Manages LLM provider selection and configuration
+- **Supported Providers**: OpenAI, Google Gemini, Anthropic Claude, Ollama, **LM Studio**
+- **Configuration Methods**: Environment variables, command-line arguments, config file
+- **Provider Templates**: YAML-based templates in `config/llm_templates.yaml`
+
+**Dynamic Prompt Generation** (`src/utils/prompt_builder.py`):
+- **PromptBuilder**: Generates dynamic prompts based on enabled integrations
+- **Integration-Aware Prompts**: Only mentions enabled data sources in agent prompts
+- **Agent Integration**: Reporting Agent, Analyst Agent, and Comparison Agent use dynamic prompts
+- **Data Source Availability**: Provides integration availability information to agents
+
+**API Call Optimization**:
+- **Smart Source Selection**: Uses preferred integration per data type
+- **Stop After Success**: Stops trying other sources once data is successfully retrieved
+- **Parallel Execution Preserved**: Optimization happens within each parallel task
+- **Status Tracking**: Progress events show API call success/skip/failed status
+
+**Graceful Failure Handling**:
+- **Integration Disabled**: Skips API call, logs as "skipped", continues with available sources
+- **API Rate Limit**: Retries with exponential backoff, marks as "failed" if all retries fail
+- **API Error**: Logs error, marks as "failed", tries fallback integration
+- **Partial Success**: Continues with available data, reports partial results
+
 ## 3. Data Flow Architecture
 
 ### 3.1 Request Flow

@@ -41,14 +41,59 @@ def create_progress_panel() -> gr.Column:
 
 def format_progress_event(event: Dict[str, Any]) -> str:
     """
-    Format individual progress event for display
+    Format individual progress event for display with API call status indicators
     
     Args:
         event: Progress event dictionary
     
     Returns:
-        Formatted string
+        Formatted string with status indicators
     """
+    event_type = event.get("event_type", "")
+    
+    # Handle API call events with status indicators
+    if event_type in ["api_call_start", "api_call_success", "api_call_failed", "api_call_skipped"]:
+        integration = event.get("integration", "Unknown")
+        symbol = event.get("symbol", "")
+        status = event.get("status", "")
+        error = event.get("error")
+        
+        # Status indicators
+        status_indicators = {
+            "success": "✓",
+            "failed": "✗",
+            "skipped": "⊘",
+            "running": "⟳"
+        }
+        indicator = status_indicators.get(status, "")
+        
+        # Format message
+        if event_type == "api_call_start":
+            message = f"{indicator} {integration} API call started for {symbol}"
+        elif event_type == "api_call_success":
+            message = f"{indicator} {integration} API call succeeded for {symbol}"
+        elif event_type == "api_call_failed":
+            error_msg = f" - {error}" if error else ""
+            message = f"{indicator} {integration} API call failed for {symbol}{error_msg}"
+        elif event_type == "api_call_skipped":
+            reason = event.get("message", "Integration disabled")
+            message = f"{indicator} {integration} API call skipped for {symbol} ({reason})"
+        else:
+            message = ProgressTracker.format_event_for_ui(event)
+        
+        # Add timestamp
+        timestamp = event.get("timestamp", "")
+        if timestamp:
+            try:
+                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                time_str = dt.strftime("%H:%M:%S")
+            except:
+                time_str = timestamp[:8] if len(timestamp) >= 8 else timestamp
+            return f"[{time_str}] {message}"
+        
+        return message
+    
+    # Use default formatting for other events
     return ProgressTracker.format_event_for_ui(event)
 
 
@@ -158,14 +203,14 @@ def create_agent_status_display(current_agent: Optional[str], current_tasks: Dic
 
 def format_progress_events_markdown(progress_events: List[Dict[str, Any]], max_events: int = 20) -> str:
     """
-    Format progress events as markdown
+    Format progress events as markdown with API call status indicators
     
     Args:
         progress_events: List of progress events
         max_events: Maximum number of events to display
     
     Returns:
-        Formatted markdown string
+        Formatted markdown string with status indicators
     """
     if not progress_events:
         return "**Progress Events:**\n\nNo events yet."
@@ -175,12 +220,37 @@ def format_progress_events_markdown(progress_events: List[Dict[str, Any]], max_e
     
     markdown = "**Progress Events:**\n\n"
     
+    # Group API call events by integration for better readability
+    api_call_events = []
+    other_events = []
+    
     for event in recent_events:
+        event_type = event.get("event_type", "")
+        if event_type in ["api_call_start", "api_call_success", "api_call_failed", "api_call_skipped"]:
+            api_call_events.append(event)
+        else:
+            other_events.append(event)
+    
+    # Format API call events with status indicators
+    for event in api_call_events:
+        formatted = format_progress_event(event)
+        markdown += f"- {formatted}\n"
+    
+    # Format other events
+    for event in other_events:
         formatted = format_progress_event(event)
         markdown += f"- {formatted}\n"
     
     if len(progress_events) > max_events:
         markdown += f"\n*... and {len(progress_events) - max_events} more events*\n"
+    
+    # Add API call summary if there are API events
+    if api_call_events:
+        success_count = sum(1 for e in api_call_events if e.get("status") == "success")
+        failed_count = sum(1 for e in api_call_events if e.get("status") == "failed")
+        skipped_count = sum(1 for e in api_call_events if e.get("status") == "skipped")
+        
+        markdown += f"\n**API Call Summary:** ✓ {success_count} succeeded, ✗ {failed_count} failed, ⊘ {skipped_count} skipped\n"
     
     return markdown
 

@@ -1064,6 +1064,166 @@ print('Total tokens:', tracker.get_agent_tokens('test_agent'))
 
 ---
 
+### 9. Integration Configuration System
+
+#### Setup
+Integration configuration is managed via `config/integrations.yaml` and environment variables.
+
+**Configuration File** (`config/integrations.yaml`):
+```yaml
+integrations:
+  yahoo_finance:
+    enabled: true
+    description: "Yahoo Finance data source"
+  
+  alpha_vantage:
+    enabled: true
+    description: "Alpha Vantage API"
+    requires_api_key: true
+  
+  fmp:
+    enabled: true
+    description: "Financial Modeling Prep API"
+    requires_api_key: true
+```
+
+**Environment Variables**:
+```bash
+# Enable/disable integrations via environment variables
+export ENABLE_YAHOO_FINANCE=true
+export ENABLE_ALPHA_VANTAGE=false
+export ENABLE_FMP=true
+```
+
+#### Start
+Integration configuration loads automatically on application start. To test:
+
+```bash
+# Test integration configuration
+python -c "
+from src.utils.integration_config import integration_config
+print('Enabled integrations:', integration_config.get_enabled_integrations())
+print('Yahoo Finance enabled:', integration_config.is_enabled('yahoo_finance'))
+print('FMP enabled:', integration_config.is_enabled('fmp'))
+"
+
+# Test data source mapping
+python -c "
+from src.utils.integration_config import integration_config
+sources = integration_config.get_enabled_sources_for_data_type('stock_price')
+print('Stock price sources:', sources)
+"
+```
+
+**What to expect:**
+- Integration configuration loaded from YAML or environment variables
+- Integration status checks return correct enabled/disabled state
+- Data source mapping returns preferred order of enabled integrations
+
+#### Usage Examples
+
+**Disable Specific Integration**:
+```bash
+# Via environment variable
+export ENABLE_FMP=false
+python main.py
+
+# Via command line
+python main.py --disable-integrations fmp
+
+# Via config file (edit config/integrations.yaml)
+# Set fmp.enabled: false
+```
+
+**Enable Only Specific Integrations**:
+```bash
+# Via command line
+python main.py --enable-integrations yahoo_finance --disable-integrations fmp,alpha_vantage
+```
+
+**Test Dynamic Prompts**:
+```bash
+python -c "
+from src.utils.prompt_builder import prompt_builder
+from src.utils.integration_config import integration_config
+
+# Disable FMP
+integration_config.config['integrations']['fmp']['enabled'] = False
+
+# Get enabled integrations text
+enabled_text = prompt_builder.get_enabled_integrations_text()
+print('Enabled integrations:', enabled_text)
+
+# Build reporting agent prompt
+base_prompt = 'Generate a financial report.'
+dynamic_prompt = prompt_builder.build_reporting_agent_prompt(base_prompt)
+print('Dynamic prompt includes:', 'FMP' in dynamic_prompt)
+"
+```
+
+**Test API Optimization**:
+```bash
+python -c "
+from src.utils.integration_config import integration_config
+
+# Get preferred sources for stock price
+sources = integration_config.get_enabled_sources_for_data_type('stock_price')
+print('Stock price sources (in order):', sources)
+# Output: ['yahoo_finance', 'alpha_vantage', 'fmp'] (if all enabled)
+
+# Disable Yahoo Finance
+integration_config.config['integrations']['yahoo_finance']['enabled'] = False
+sources = integration_config.get_enabled_sources_for_data_type('stock_price')
+print('Stock price sources (Yahoo disabled):', sources)
+# Output: ['alpha_vantage', 'fmp']
+"
+```
+
+#### Stop
+Integration configuration doesn't need separate stop. It's loaded on application start and persists until application stops.
+
+#### Restart
+Restart the application to reload integration configuration. Configuration changes take effect on next application start.
+
+#### Test/Debug
+```bash
+# Test integration status
+python -c "
+from src.utils.integration_config import integration_config
+print('All integrations:', list(integration_config.config['integrations'].keys()))
+for name in ['yahoo_finance', 'alpha_vantage', 'fmp']:
+    status = integration_config.is_enabled(name)
+    print(f'{name}: {\"enabled\" if status else \"disabled\"}')
+"
+
+# Test data source mapping
+python -c "
+from src.utils.integration_config import integration_config
+data_types = ['stock_price', 'company_info', 'financial_statements', 'news', 'historical_data', 'technical_indicators']
+for data_type in data_types:
+    sources = integration_config.get_enabled_sources_for_data_type(data_type)
+    print(f'{data_type}: {sources}')
+"
+
+# Test prompt builder
+python -c "
+from src.utils.prompt_builder import prompt_builder
+print('Enabled integrations:', prompt_builder.get_enabled_integrations_text())
+print('Available data sources:')
+print(prompt_builder.get_available_data_sources_text())
+"
+```
+
+**Debugging tips:**
+- Check `config/integrations.yaml` for configuration
+- Verify environment variables are set correctly
+- Test integration status checks
+- Verify data source mapping returns correct preferred order
+- Check logs for integration status in API calls
+- Test dynamic prompts include only enabled integrations
+
+---
+
 ## Testing and Debugging
 
 ### Running Unit Tests

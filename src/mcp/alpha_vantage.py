@@ -135,16 +135,55 @@ class AlphaVantageClient(MCPBaseClient):
     def get_technical_indicators(self, symbol: str, indicator: str = "SMA", 
                                 interval: str = "daily", time_period: int = 20) -> Dict[str, Any]:
         """
-        Get technical indicators
+        Get technical analysis indicators for stock price analysis.
+        
+        This method retrieves technical indicators calculated from price data. Alpha Vantage is
+        the ONLY integration that provides technical indicators. Use this for technical analysis.
+        
+        USE THIS METHOD WHEN:
+        - You need technical indicators (SMA, EMA, RSI, MACD, Bollinger Bands, etc.)
+        - You need technical analysis for trading signals
+        - You need momentum indicators or trend indicators
+        - You need support/resistance levels
+        
+        DO NOT USE THIS METHOD FOR:
+        - Stock price data (use get_stock_price instead)
+        - Company information (use get_company_info instead)
+        - Financial statements (use FMP get_financial_statements instead)
+        - Historical price data (use Yahoo Finance get_historical_data instead)
+        
+        NOTE: Alpha Vantage is the ONLY data source that provides technical indicators.
+        Other integrations (Yahoo Finance, FMP) do not provide technical indicators.
         
         Args:
-            symbol: Stock symbol
-            indicator: Indicator type (SMA, EMA, RSI, MACD, etc.)
-            interval: Time interval (1min, 5min, 15min, 30min, 60min, daily, weekly, monthly)
-            time_period: Number of data points
+            symbol: Stock ticker symbol (e.g., "AAPL", "MSFT"). Must be valid ticker.
+            indicator: Technical indicator type. Common values:
+                - "SMA": Simple Moving Average
+                - "EMA": Exponential Moving Average
+                - "RSI": Relative Strength Index
+                - "MACD": Moving Average Convergence Divergence
+                - "BBANDS": Bollinger Bands
+                - "STOCH": Stochastic Oscillator
+                - "ADX": Average Directional Index
+                Default: "SMA"
+            interval: Time interval for data points. Valid values:
+                - "1min", "5min", "15min", "30min", "60min": Intraday intervals
+                - "daily", "weekly", "monthly": Daily/weekly/monthly intervals
+                Default: "daily"
+            time_period: Number of data points to use for calculation (e.g., 20 for 20-day SMA)
+                Default: 20
         
         Returns:
-            Technical indicator data with citation
+            Dictionary containing:
+            - symbol: Stock symbol
+            - indicator: Indicator type requested
+            - interval: Time interval used
+            - time_period: Time period used
+            - data: Dictionary of indicator values keyed by date/time
+            - timestamp: ISO timestamp of data retrieval
+        
+        Raises:
+            Exception: If symbol is invalid, indicator invalid, data unavailable, or API error occurs
         """
         try:
             params = {

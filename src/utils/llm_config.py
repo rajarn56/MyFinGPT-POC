@@ -30,7 +30,9 @@ class LLMConfig:
         
         self.config_path = Path(config_path)
         self.config = self._load_config()
-        self.default_provider = os.getenv("LITELLM_MODEL", self.config.get("default", {}).get("provider", "openai"))
+        # Support both LITELLM_PROVIDER and LITELLM_MODEL for backward compatibility
+        env_provider = os.getenv("LITELLM_PROVIDER") or os.getenv("LITELLM_MODEL")
+        self.default_provider = env_provider or self.config.get("default", {}).get("provider", "openai")
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from YAML file"""
@@ -53,7 +55,7 @@ class LLMConfig:
         Get configuration for a specific provider
         
         Args:
-            provider: Provider name (openai, gemini, anthropic, ollama)
+            provider: Provider name (openai, gemini, anthropic, ollama, lmstudio)
                     If None, uses default provider
         
         Returns:
@@ -63,6 +65,16 @@ class LLMConfig:
             provider = self.default_provider
         
         provider_config = self.config.get(provider, {})
+        
+        # Handle LM Studio specially - it uses OpenAI-compatible API
+        if provider == "lmstudio" and not provider_config:
+            # Fallback to default LM Studio config if not in config file
+            provider_config = {
+                "model": os.getenv("LM_STUDIO_MODEL", "local-model"),
+                "api_base": os.getenv("LM_STUDIO_API_BASE", "http://localhost:1234/v1"),
+                "temperature": 0.7,
+                "max_tokens": 4000
+            }
         
         # Resolve environment variables in config
         resolved_config = {}
@@ -102,17 +114,40 @@ class LLMConfig:
         """
         import litellm
         
+        if provider is None:
+            provider = self.default_provider
+        
         config = self.get_provider_config(provider)
         model = config.get("model")
         api_key = config.get("api_key")
         api_base = config.get("api_base")
         
-        # Set up LiteLLM
-        if api_key:
-            os.environ[f"{provider.upper()}_API_KEY"] = api_key
-        
-        if api_base:
-            os.environ[f"{provider.upper()}_API_BASE"] = api_base
+        # Handle LM Studio specially - it uses OpenAI-compatible API
+        if provider == "lmstudio":
+            # LM Studio uses OpenAI-compatible endpoint
+            # LiteLLM format: openai/<model> with custom api_base
+            if api_base:
+                # Format model as openai/<model> for LiteLLM
+                if not model.startswith("openai/"):
+                    model = f"openai/{model}"
+                os.environ["OPENAI_API_BASE"] = api_base
+            # LM Studio typically doesn't require API key, but set if provided
+            if api_key:
+                os.environ["OPENAI_API_KEY"] = api_key
+            else:
+                # Set a dummy key if none provided (some OpenAI-compatible APIs require it)
+                os.environ["OPENAI_API_KEY"] = "lm-studio"
+        else:
+            # Set up LiteLLM for other providers
+            if api_key:
+                # Set provider-specific API key environment variable
+                provider_env_key = f"{provider.upper()}_API_KEY"
+                os.environ[provider_env_key] = api_key
+            
+            if api_base:
+                # Set provider-specific API base environment variable
+                provider_env_base = f"{provider.upper()}_API_BASE"
+                os.environ[provider_env_base] = api_base
         
         return {
             "model": model,

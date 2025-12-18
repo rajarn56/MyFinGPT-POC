@@ -46,16 +46,17 @@ def test_fmp_connectivity():
     
     print(f"\n✓ API key found: {api_key[:8]}...{api_key[-4:]}")
     
-    base_url = "https://financialmodelingprep.com/api/v3"
+    base_url = "https://financialmodelingprep.com/stable"
     test_symbol = "AAPL"
     
     print(f"\n1. Testing quote endpoint for {test_symbol}...")
     try:
         params = {
+            "symbol": test_symbol,
             "apikey": api_key
         }
         
-        response = requests.get(f"{base_url}/quote/{test_symbol}", params=params, timeout=10)
+        response = requests.get(f"{base_url}/quote", params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
         
@@ -89,10 +90,11 @@ def test_fmp_connectivity():
     print("\n2. Testing profile endpoint...")
     try:
         params = {
+            "symbol": test_symbol,
             "apikey": api_key
         }
         
-        response = requests.get(f"{base_url}/profile/{test_symbol}", params=params, timeout=10)
+        response = requests.get(f"{base_url}/profile", params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
         

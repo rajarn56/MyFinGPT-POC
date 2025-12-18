@@ -9,6 +9,7 @@ from ..orchestrator.state import AgentState, StateManager
 from ..vector_db.chroma_client import ChromaClient
 from ..vector_db.embeddings import EmbeddingPipeline
 from ..utils.parallelization import ParallelizationStrategy
+from ..utils.prompt_builder import prompt_builder
 
 
 class AnalystAgent(BaseAgent):
@@ -309,8 +310,46 @@ Provide a sentiment analysis with:
 Format your response as JSON with keys: sentiment, score, factors, summary."""
         
         try:
+            # Build dynamic system prompt based on enabled integrations
+            base_system_prompt = """You are a financial sentiment analyst specializing in news sentiment analysis for stock market research.
+
+Your role is to analyze news articles about stocks and provide structured sentiment analysis.
+
+OUTPUT REQUIREMENTS:
+1. Format: You must respond with valid JSON containing these exact keys:
+   - sentiment: String value ("positive", "negative", or "neutral")
+   - score: Float value between -1.0 and 1.0, where:
+     * -1.0 to -0.3 = negative sentiment
+     * -0.3 to 0.3 = neutral sentiment  
+     * 0.3 to 1.0 = positive sentiment
+   - factors: Array of strings describing key factors influencing sentiment
+   - summary: String (2-3 sentences) summarizing the main sentiment drivers
+
+2. Analysis Method: Consider:
+   - Article headlines and tone
+   - Financial performance mentions
+   - Market outlook statements
+   - Analyst opinions cited
+   - Company announcements
+   - Industry trends mentioned
+
+3. Sentiment Scale Definition:
+   - Positive: Articles highlight growth, positive earnings, favorable outlook, analyst upgrades
+   - Negative: Articles highlight losses, declining metrics, analyst downgrades, concerns
+   - Neutral: Mixed news, routine announcements, balanced coverage
+
+4. Accuracy: Base sentiment only on the provided articles. Do not infer sentiment from missing data.
+
+5. Domain Scope: Focus on financial and business news only. Ignore non-financial topics."""
+            
+            # Enhance with integration-specific information
+            dynamic_system_prompt = prompt_builder.build_analyst_agent_prompt(base_system_prompt)
+            
             messages = [
-                {"role": "system", "content": "You are a financial sentiment analyst. Analyze news sentiment and provide structured analysis."},
+                {
+                    "role": "system", 
+                    "content": dynamic_system_prompt
+                },
                 {"role": "user", "content": prompt}
             ]
             

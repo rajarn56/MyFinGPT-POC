@@ -221,7 +221,7 @@ class ResearchAgent(BaseAgent):
         # Fetch from API
         logger.debug(f"Research Agent: Fetching price data for {symbol}")
         state = self.start_task(state, "Fetch stock price", symbol=symbol)
-        price_data = self.mcp_client.get_stock_price(symbol)
+        price_data = self.mcp_client.get_stock_price(symbol, state=state)
         state = self.complete_task(state, "Fetch stock price", symbol=symbol)
         
         # Cache result
@@ -249,7 +249,7 @@ class ResearchAgent(BaseAgent):
         # Fetch from API
         logger.debug(f"Research Agent: Fetching company info for {symbol}")
         state = self.start_task(state, "Fetch company info", symbol=symbol)
-        company_info = self.mcp_client.get_company_info(symbol)
+        company_info = self.mcp_client.get_company_info(symbol, state=state)
         state = self.complete_task(state, "Fetch company info", symbol=symbol)
         
         # Cache result
@@ -278,7 +278,7 @@ class ResearchAgent(BaseAgent):
         try:
             logger.debug(f"Research Agent: Fetching news for {symbol}")
             state = self.start_task(state, "Fetch news articles", symbol=symbol)
-            news_data = self.mcp_client.yahoo.get_news(symbol, count=10)
+            news_data = self.mcp_client.get_news(symbol, count=10, state=state)
             state = self.complete_task(state, "Fetch news articles", symbol=symbol)
             
             # Cache result
@@ -311,7 +311,7 @@ class ResearchAgent(BaseAgent):
         try:
             logger.debug(f"Research Agent: Fetching historical data for {symbol}")
             state = self.start_task(state, "Fetch historical data", symbol=symbol)
-            historical_data = self.mcp_client.yahoo.get_historical_data(symbol, period="6mo")
+            historical_data = self.mcp_client.get_historical_data(symbol, period="6mo", state=state)
             state = self.complete_task(state, "Fetch historical data", symbol=symbol)
             
             # Cache result
@@ -344,7 +344,7 @@ class ResearchAgent(BaseAgent):
         try:
             logger.debug(f"Research Agent: Fetching financials for {symbol}")
             state = self.start_task(state, "Fetch financial statements", symbol=symbol)
-            financials = self.mcp_client.yahoo.get_financials(symbol)
+            financials = self.mcp_client.get_financial_statements(symbol, state=state)
             state = self.complete_task(state, "Fetch financial statements", symbol=symbol)
             
             # Cache result

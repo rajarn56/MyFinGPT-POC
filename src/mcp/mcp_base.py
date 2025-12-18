@@ -38,7 +38,7 @@ class MCPBaseClient(ABC):
     def _make_request(self, endpoint: str, params: Optional[Dict[str, Any]] = None,
                      method: str = "GET", max_retries: int = 3) -> Dict[str, Any]:
         """
-        Make HTTP request with retry logic
+        Make HTTP request with retry logic and graceful error handling
         
         Args:
             endpoint: API endpoint
@@ -48,8 +48,12 @@ class MCPBaseClient(ABC):
         
         Returns:
             Response data
+        
+        Raises:
+            Exception: If request fails after all retries
         """
         url = f"{self.base_url}/{endpoint}" if self.base_url else endpoint
+        last_exception = None
         
         for attempt in range(max_retries):
             try:
@@ -66,30 +70,73 @@ class MCPBaseClient(ABC):
                 return response.json()
             
             except requests.exceptions.HTTPError as e:
-                if e.response.status_code == 429:  # Rate limit
+                last_exception = e
+                status_code = e.response.status_code if e.response else None
+                
+                if status_code == 429:  # Rate limit
                     wait_time = 2 ** attempt  # Exponential backoff
-                    logger.warning(f"{self.name}: Rate limited, waiting {wait_time}s")
-                    time.sleep(wait_time)
-                    continue
-                elif e.response.status_code >= 500:  # Server error
+                    logger.warning(f"{self.name}: Rate limited (429), waiting {wait_time}s before retry {attempt + 1}/{max_retries}")
                     if attempt < max_retries - 1:
-                        wait_time = 2 ** attempt
-                        logger.warning(f"{self.name}: Server error, retrying in {wait_time}s")
                         time.sleep(wait_time)
                         continue
-                    raise
+                elif status_code == 401:  # Unauthorized
+                    logger.error(f"{self.name}: Authentication failed (401) - check API key")
+                    raise Exception(f"{self.name}: Authentication failed - invalid or missing API key")
+                elif status_code == 403:  # Forbidden
+                    logger.error(f"{self.name}: Access forbidden (403) - check API permissions")
+                    raise Exception(f"{self.name}: Access forbidden - insufficient API permissions")
+                elif status_code == 404:  # Not found
+                    logger.warning(f"{self.name}: Resource not found (404) - {endpoint}")
+                    raise Exception(f"{self.name}: Resource not found - {endpoint}")
+                elif status_code >= 500:  # Server error
+                    wait_time = 2 ** attempt
+                    logger.warning(f"{self.name}: Server error ({status_code}), retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    if attempt < max_retries - 1:
+                        time.sleep(wait_time)
+                        continue
                 else:
-                    raise
+                    # Other 4xx errors
+                    error_msg = f"{self.name}: HTTP error {status_code}"
+                    if e.response and hasattr(e.response, 'text'):
+                        try:
+                            error_detail = e.response.json()
+                            error_msg += f" - {error_detail}"
+                        except:
+                            error_msg += f" - {e.response.text[:200]}"
+                    logger.error(error_msg)
+                    raise Exception(error_msg)
+            
+            except requests.exceptions.Timeout as e:
+                last_exception = e
+                wait_time = 2 ** attempt
+                logger.warning(f"{self.name}: Request timeout, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    time.sleep(wait_time)
+                    continue
+            
+            except requests.exceptions.ConnectionError as e:
+                last_exception = e
+                wait_time = 2 ** attempt
+                logger.warning(f"{self.name}: Connection error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(wait_time)
+                    continue
             
             except Exception as e:
+                last_exception = e
+                wait_time = 2 ** attempt
+                logger.warning(f"{self.name}: Request failed, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries}): {e}")
                 if attempt < max_retries - 1:
-                    wait_time = 2 ** attempt
-                    logger.warning(f"{self.name}: Request failed, retrying in {wait_time}s: {e}")
                     time.sleep(wait_time)
                     continue
                 raise
         
-        raise Exception(f"{self.name}: Request failed after {max_retries} attempts")
+        # All retries exhausted
+        error_msg = f"{self.name}: Request failed after {max_retries} attempts"
+        if last_exception:
+            error_msg += f" - {str(last_exception)}"
+        logger.error(error_msg)
+        raise Exception(error_msg)
     
     def add_citation(self, source: str, url: Optional[str] = None, 
                     date: Optional[str] = None, data_point: Optional[str] = None,

@@ -5,6 +5,7 @@ from loguru import logger
 from .base_agent import BaseAgent
 from ..orchestrator.state import AgentState
 from ..vector_db.chroma_client import ChromaClient
+from ..utils.prompt_builder import prompt_builder
 
 
 class ReportingAgent(BaseAgent):
@@ -140,10 +141,44 @@ Please generate a well-structured report with the following sections:
 Make the report professional, clear, and actionable. Include specific numbers and data points with proper citations."""
 
         try:
+            # Build dynamic system prompt based on enabled integrations
+            base_system_prompt = """You are a professional financial analyst specializing in stock market analysis and investment research.
+
+Your role is to generate comprehensive financial analysis reports based on research data and analysis results.
+
+REPORT REQUIREMENTS:
+1. Structure: Reports must include these sections in order:
+   - Executive Summary (2-3 paragraphs)
+   - Company Overview (for each symbol analyzed)
+   - Financial Analysis (key metrics, ratios, financial health)
+   - Market Sentiment Analysis (news sentiment, market perception)
+   - Trends and Patterns (price trends, historical patterns)
+   - Investment Recommendation (buy/hold/sell with reasoning)
+   - Risk Assessment (key risks and mitigation)
+   - Sources and Citations (all data sources properly cited)
+
+2. Citations: Every data point, metric, or statistic must include a citation in format: [Source: Data Point]. 
+   Example: "AAPL's current price is $150.25 [Source: Yahoo Finance: stock_price]"
+
+3. Domain Scope: Focus exclusively on financial markets, stocks, companies, and investment analysis. 
+   Do not include non-financial topics.
+
+4. Actionability: Provide specific, actionable insights with clear reasoning. Include numerical data 
+   and specific recommendations, not vague generalities.
+
+5. Professional Tone: Use clear, professional language suitable for investment professionals and 
+   informed investors. Avoid jargon without explanation.
+
+6. Data Accuracy: Only use data provided in the context. If data is missing, explicitly state that 
+   it was unavailable rather than making assumptions."""
+            
+            # Enhance with integration-specific information
+            dynamic_system_prompt = prompt_builder.build_reporting_agent_prompt(base_system_prompt)
+            
             messages = [
                 {
                     "role": "system",
-                    "content": "You are a professional financial analyst. Generate comprehensive, well-structured financial analysis reports with proper citations and actionable insights."
+                    "content": dynamic_system_prompt
                 },
                 {
                     "role": "user",

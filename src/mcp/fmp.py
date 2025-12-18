@@ -23,7 +23,7 @@ class FMPClient(MCPBaseClient):
         
         super().__init__(
             name="Financial Modeling Prep",
-            base_url="https://financialmodelingprep.com/api/v3",
+            base_url="https://financialmodelingprep.com/stable",
             api_key=api_key
         )
         self.rate_limit_delay = 0.5  # Free tier: reasonable rate limit
@@ -47,7 +47,7 @@ class FMPClient(MCPBaseClient):
             Stock price data with citation
         """
         try:
-            data = self._make_request(f"/quote/{symbol}")
+            data = self._make_request("/quote", params={"symbol": symbol})
             
             if not data or len(data) == 0:
                 raise Exception(f"No data returned for {symbol}")
@@ -71,7 +71,7 @@ class FMPClient(MCPBaseClient):
             # Add citation
             self.add_citation(
                 source="Financial Modeling Prep",
-                url=f"https://financialmodelingprep.com/api/v3/quote/{symbol}",
+                url=f"https://financialmodelingprep.com/stable/quote?symbol={symbol}",
                 date=datetime.now().isoformat(),
                 data_point="stock_price",
                 symbol=symbol
@@ -94,7 +94,7 @@ class FMPClient(MCPBaseClient):
             Company information with citation
         """
         try:
-            data = self._make_request(f"/profile/{symbol}")
+            data = self._make_request("/profile", params={"symbol": symbol})
             
             if not data or len(data) == 0:
                 raise Exception(f"No profile data returned for {symbol}")
@@ -120,7 +120,7 @@ class FMPClient(MCPBaseClient):
             # Add citation
             self.add_citation(
                 source="Financial Modeling Prep",
-                url=f"https://financialmodelingprep.com/api/v3/profile/{symbol}",
+                url=f"https://financialmodelingprep.com/stable/profile?symbol={symbol}",
                 date=datetime.now().isoformat(),
                 data_point="company_info",
                 symbol=symbol
@@ -134,17 +134,46 @@ class FMPClient(MCPBaseClient):
     
     def get_financial_statements(self, symbol: str, statement_type: str = "income-statement") -> Dict[str, Any]:
         """
-        Get financial statements
+        Get detailed financial statements (income statement, balance sheet, cash flow).
+        
+        This method retrieves comprehensive financial statement data. FMP is the PREFERRED source
+        for financial statements as it provides the most detailed and structured data.
+        
+        USE THIS METHOD WHEN:
+        - You need detailed financial statements (income statement, balance sheet, cash flow)
+        - You need multiple periods of financial data for analysis
+        - You need structured financial data for ratio calculations
+        - You need comprehensive financial metrics
+        
+        DO NOT USE THIS METHOD FOR:
+        - Stock price data (use get_stock_price instead)
+        - Company profile (use get_company_info instead)
+        - Historical price data (use Yahoo Finance get_historical_data instead)
+        
+        NOTE: FMP is the PREFERRED source for financial statements. Use this integration
+        when financial statement data is the primary requirement.
         
         Args:
-            symbol: Stock symbol
-            statement_type: Type of statement (income-statement, balance-sheet-statement, cash-flow-statement)
+            symbol: Stock ticker symbol (e.g., "AAPL", "MSFT"). Must be valid ticker.
+            statement_type: Type of financial statement. Valid values:
+                - "income-statement": Income statement (revenue, expenses, net income)
+                - "balance-sheet-statement": Balance sheet (assets, liabilities, equity)
+                - "cash-flow-statement": Cash flow statement (operating, investing, financing)
+                Default: "income-statement"
         
         Returns:
-            Financial statements with citation
+            Dictionary containing:
+            - symbol: Stock symbol
+            - statement_type: Type of statement requested
+            - data: List of financial statement records (typically quarterly/annual)
+            - count: Number of periods available
+            - timestamp: ISO timestamp of data retrieval
+        
+        Raises:
+            Exception: If symbol is invalid, statement_type invalid, data unavailable, or API error occurs
         """
         try:
-            data = self._make_request(f"/{statement_type}/{symbol}")
+            data = self._make_request(f"/{statement_type}", params={"symbol": symbol})
             
             financials = {
                 "symbol": symbol,
@@ -157,7 +186,7 @@ class FMPClient(MCPBaseClient):
             # Add citation
             self.add_citation(
                 source="Financial Modeling Prep",
-                url=f"https://financialmodelingprep.com/api/v3/{statement_type}/{symbol}",
+                url=f"https://financialmodelingprep.com/stable/{statement_type}?symbol={symbol}",
                 date=datetime.now().isoformat(),
                 data_point="financial_statements",
                 symbol=symbol
@@ -203,7 +232,7 @@ class FMPClient(MCPBaseClient):
             # Add citation
             self.add_citation(
                 source="Financial Modeling Prep",
-                url=f"https://financialmodelingprep.com/api/v3/stock_news?tickers={symbol}",
+                url=f"https://financialmodelingprep.com/stable/stock_news?tickers={symbol}",
                 date=datetime.now().isoformat(),
                 data_point="news_articles",
                 symbol=symbol

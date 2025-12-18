@@ -1,0 +1,24 @@
+# Integration Configuration
+# Controls which data source integrations are enabled/disabled
+
+integrations:
+  yahoo_finance:
+    enabled: true
+    description: "Yahoo Finance data source"
+    requires_api_key: false
+  
+  alpha_vantage:
+    enabled: true
+    description: "Alpha Vantage API"
+    requires_api_key: true
+  
+  fmp:
+    enabled: true
+    description: "Financial Modeling Prep API"
+    requires_api_key: true
+
+# Environment variable overrides supported:
+# ENABLE_YAHOO_FINANCE=true/false
+# ENABLE_ALPHA_VANTAGE=true/false
+# ENABLE_FMP=true/false
+

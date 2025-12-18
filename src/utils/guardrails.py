@@ -131,18 +131,36 @@ class Guardrails:
         
         # Check query length
         if len(query) > cls.MAX_QUERY_LENGTH:
-            return False, f"Query exceeds maximum length of {cls.MAX_QUERY_LENGTH} characters"
+            return False, (
+                f"Query exceeds maximum length of {cls.MAX_QUERY_LENGTH} characters "
+                f"(current length: {len(query):,} characters). "
+                "Please shorten your query or break it into multiple questions."
+            )
         
         # Check for dangerous patterns (injection attacks)
-        sanitized_query = cls.sanitize_input(query)
-        if sanitized_query != query:
-            return False, "Query contains potentially dangerous patterns"
+        try:
+            sanitized_query = cls.sanitize_input(query)
+            if sanitized_query != query:
+                return False, (
+                    "Query contains potentially dangerous patterns that could pose a security risk. "
+                    "Please rephrase your query using only plain text about financial topics."
+                )
+        except GuardrailsError as e:
+            return False, (
+                f"Query validation failed: {str(e)}. "
+                "Please ensure your query contains only safe, plain text about financial topics."
+            )
         
         # Check for non-financial domain keywords
         query_lower = query.lower()
         for keyword in cls.NON_FINANCIAL_KEYWORDS:
             if keyword in query_lower:
-                return False, f"Query contains non-financial domain keyword: {keyword}"
+                return False, (
+                    f"Query contains out-of-scope keyword: '{keyword}'. "
+                    "This system focuses exclusively on financial market analysis (stocks, companies, investments). "
+                    "Please rephrase your query to focus on financial topics. "
+                    "Examples: 'Analyze AAPL stock', 'Compare tech companies', 'Show TSLA financials'"
+                )
         
         # Check if query is financial-related
         has_financial_keyword = any(
@@ -155,7 +173,12 @@ class Guardrails:
         has_symbols = len(symbols) > 0
         
         if not has_financial_keyword and not has_symbols:
-            return False, "Query does not appear to be financial domain-related. Please ask about stocks, companies, or financial analysis."
+            return False, (
+                "Query does not appear to be financial domain-related. "
+                "Please ask about stocks, companies, financial analysis, or market data. "
+                "Examples: 'Analyze AAPL stock', 'Compare MSFT and GOOGL', "
+                "'What is the current price of TSLA?', 'Show financials for NVDA'"
+            )
         
         return True, None
     
@@ -211,12 +234,21 @@ class Guardrails:
         
         # Check pattern
         if not cls.VALID_SYMBOL_PATTERN.match(symbol):
-            return False, f"Symbol format invalid: {symbol} (must be 1-5 uppercase letters, optionally followed by exchange suffix)"
+            return False, (
+                f"Invalid stock symbol format: '{symbol}'. "
+                "Stock symbols must be 1-5 uppercase letters (e.g., AAPL, MSFT, TSLA). "
+                "Optionally followed by exchange suffix (e.g., BRK.A for Class A shares). "
+                "Examples of valid symbols: AAPL, MSFT, GOOGL, BRK.A, TSLA"
+            )
         
         # Check against invalid symbols
         base_symbol = symbol.split('.')[0]  # Remove exchange suffix if present
         if base_symbol in cls.INVALID_SYMBOLS:
-            return False, f"Symbol appears to be a common word, not a stock symbol: {symbol}"
+            return False, (
+                f"'{symbol}' appears to be a common word, not a stock symbol. "
+                "Please use a valid stock ticker symbol (e.g., AAPL for Apple, MSFT for Microsoft). "
+                "If you're unsure of a company's ticker symbol, try: 'What is the stock symbol for [Company Name]?'"
+            )
         
         return True, None
     
@@ -306,7 +338,11 @@ class Guardrails:
         source_lower = source.lower().replace(" ", "_")
         
         if source_lower not in cls.ALLOWED_DATA_SOURCES:
-            return False, f"Data source not allowed: {source}. Allowed sources: {', '.join(cls.ALLOWED_DATA_SOURCES)}"
+            return False, (
+                f"Data source '{source}' is not allowed or not recognized. "
+                f"Allowed data sources are: {', '.join(sorted(cls.ALLOWED_DATA_SOURCES))}. "
+                "Valid source names: 'yahoo_finance', 'alpha_vantage', 'fmp' (or 'financial_modeling_prep')."
+            )
         
         return True, None
     
@@ -327,7 +363,11 @@ class Guardrails:
         
         # Check output length (reasonable limit)
         if len(output) > 50000:  # 50KB limit
-            return False, f"{agent_name}: Output exceeds maximum length"
+            return False, (
+                f"{agent_name}: Output exceeds maximum length of 50,000 characters "
+                f"(current length: {len(output):,} characters). "
+                "Please reduce the output size or split into multiple responses."
+            )
         
         # Check for dangerous patterns
         try:
@@ -350,7 +390,11 @@ class Guardrails:
             )
             
             if has_non_financial:
-                return False, f"{agent_name}: Output contains non-financial domain content"
+                return False, (
+                    f"{agent_name}: Output contains non-financial domain content that is out of scope. "
+                    "This system is designed for financial market analysis only. "
+                    "Please ensure outputs focus on stocks, companies, financial metrics, and investment analysis."
+                )
             
             # Reporting agent should have financial content
             if not has_financial_content and len(output) > 100:

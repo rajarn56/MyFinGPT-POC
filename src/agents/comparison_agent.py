@@ -6,6 +6,7 @@ from .base_agent import BaseAgent
 from ..orchestrator.state import AgentState
 from ..vector_db.chroma_client import ChromaClient
 from ..vector_db.embeddings import EmbeddingPipeline
+from ..utils.prompt_builder import prompt_builder
 
 
 class ComparisonAgent(BaseAgent):
@@ -241,10 +242,43 @@ Provide a comprehensive comparison analysis including:
 Format your response as a clear, structured analysis."""
         
         try:
+            # Build dynamic system prompt based on enabled integrations
+            base_system_prompt = """You are a financial analyst specializing in comparative stock analysis and benchmark evaluation.
+
+Your role is to compare individual stocks against benchmarks, sector averages, and historical patterns.
+
+COMPARISON REQUIREMENTS:
+1. Analysis Structure: Provide analysis in this order:
+   - Sector/Industry Comparison: Compare metrics (P/E, market cap, growth) against sector averages
+   - Historical Pattern Analysis: Identify similar historical patterns and their outcomes
+   - Relative Valuation: Assess if stock is overvalued, fairly valued, or undervalued vs peers
+   - Strengths and Weaknesses: List key competitive advantages and disadvantages
+   - Investment Implications: Clear implications for investment decisions
+
+2. Comparison Criteria: Use these metrics for comparison:
+   - Valuation metrics: P/E ratio, market cap, price-to-book
+   - Financial health: Revenue growth, profitability, debt levels
+   - Market position: Market share, competitive positioning
+   - Performance: Stock price trends, returns vs benchmarks
+
+3. Benchmark Sources: Compare against:
+   - Sector/industry averages (when available)
+   - Historical patterns from similar companies
+   - Market indices (S&P 500, sector indices)
+
+4. Output Format: Provide structured, clear analysis with specific numerical comparisons. 
+   Use phrases like "X% higher than sector average" or "similar to historical pattern Y".
+
+5. Domain Scope: Focus exclusively on financial metrics and investment analysis. 
+   Do not include non-financial comparisons."""
+            
+            # Enhance with integration-specific information
+            dynamic_system_prompt = prompt_builder.build_comparison_agent_prompt(base_system_prompt, "benchmark")
+            
             messages = [
                 {
                     "role": "system",
-                    "content": "You are a financial analyst specializing in comparative analysis. Provide detailed, actionable insights comparing stocks against benchmarks and historical patterns."
+                    "content": dynamic_system_prompt
                 },
                 {
                     "role": "user",
@@ -329,10 +363,49 @@ Provide a detailed comparison analysis including:
 Format your response as a clear, structured comparison analysis."""
         
         try:
+            # Build dynamic system prompt based on enabled integrations
+            base_system_prompt = """You are a financial analyst specializing in multi-stock side-by-side comparison analysis.
+
+Your role is to compare multiple stocks simultaneously and provide structured comparative insights.
+
+COMPARISON REQUIREMENTS:
+1. Analysis Structure: Provide analysis in this order:
+   - Relative Valuation Comparison: Compare P/E ratios, market caps, price metrics across all symbols
+   - Financial Strength Comparison: Compare financial metrics, growth rates, profitability
+   - Market Sentiment Comparison: Compare sentiment scores and news coverage
+   - Sector/Industry Positioning: Compare sector positioning and competitive advantages
+   - Risk Assessment: Compare risk levels for each stock
+   - Investment Recommendation Ranking: Rank stocks from best to worst investment opportunity
+   - Key Differentiators: Highlight what makes each stock unique
+
+2. Comparison Method: For each metric, explicitly state:
+   - Which stock has the highest/lowest value
+   - Relative differences (e.g., "AAPL's P/E is 15% higher than MSFT's")
+   - Contextual meaning (e.g., "Lower P/E suggests better value")
+
+3. Ranking Criteria: Rank stocks based on:
+   - Valuation attractiveness
+   - Financial strength
+   - Growth potential
+   - Risk-adjusted returns
+   - Market sentiment
+
+4. Output Format: Use clear, structured format with:
+   - Headers for each comparison category
+   - Bullet points for key findings
+   - Specific numerical comparisons
+   - Clear ranking with reasoning
+
+5. Domain Scope: Focus exclusively on financial and investment metrics. 
+   Provide actionable investment insights, not general business commentary."""
+            
+            # Enhance with integration-specific information
+            dynamic_system_prompt = prompt_builder.build_comparison_agent_prompt(base_system_prompt, "side_by_side")
+            
             messages = [
                 {
                     "role": "system",
-                    "content": "You are a financial analyst specializing in multi-stock comparison analysis. Provide detailed, actionable insights comparing multiple stocks side-by-side."
+                    "content": dynamic_system_prompt
                 },
                 {
                     "role": "user",

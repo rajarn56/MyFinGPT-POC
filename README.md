@@ -175,7 +175,7 @@ python -c "from src.mcp.mcp_client import UnifiedMCPClient; c = UnifiedMCPClient
 
 ### LLM Provider Configuration
 
-Edit `config/llm_templates.yaml` to configure LLM providers:
+MyFinGPT supports multiple LLM providers including **LM Studio** for local models. Configure providers in `config/llm_templates.yaml`:
 
 ```yaml
 openai:
@@ -187,12 +187,115 @@ gemini:
   model: "gemini-pro"
   api_key: "${GEMINI_API_KEY}"
   temperature: 0.7
+
+lmstudio:
+  model: "${LM_STUDIO_MODEL:-local-model}"
+  api_base: "${LM_STUDIO_API_BASE:-http://localhost:1234/v1}"
+  temperature: 0.7
+  max_tokens: 4000
 ```
 
-Set default provider via environment variable:
+**Selecting LLM Provider**:
+
+1. **Via Environment Variable**:
 ```bash
-export LITELLM_MODEL=openai  # or gemini, anthropic, ollama
+export LITELLM_PROVIDER=lmstudio  # or openai, gemini, anthropic, ollama
+python main.py
 ```
+
+2. **Via Command Line**:
+```bash
+python main.py --llm-provider lmstudio
+```
+
+3. **Via Config File**:
+Edit `config/llm_templates.yaml` and set the default provider:
+```yaml
+default:
+  provider: "lmstudio"  # or openai, gemini, etc.
+```
+
+**LM Studio Setup**:
+1. Install LM Studio from https://lmstudio.ai/
+2. Load a model in LM Studio
+3. Start local server (default port 1234)
+4. Set environment variables:
+```bash
+export LM_STUDIO_API_BASE=http://localhost:1234/v1
+export LM_STUDIO_MODEL=your-model-name
+export LITELLM_PROVIDER=lmstudio
+```
+
+### Integration Configuration
+
+Control which data source integrations are enabled/disabled:
+
+**Configuration File** (`config/integrations.yaml`):
+```yaml
+integrations:
+  yahoo_finance:
+    enabled: true
+    description: "Yahoo Finance data source"
+  
+  alpha_vantage:
+    enabled: true
+    description: "Alpha Vantage API"
+    requires_api_key: true
+  
+  fmp:
+    enabled: true
+    description: "Financial Modeling Prep API"
+    requires_api_key: true
+```
+
+**Via Environment Variables**:
+```bash
+# Disable specific integrations
+export ENABLE_FMP=false
+export ENABLE_ALPHA_VANTAGE=true
+export ENABLE_YAHOO_FINANCE=true
+
+# Start application
+python main.py
+```
+
+**Via Command Line**:
+```bash
+# Disable FMP integration
+python main.py --disable-integrations fmp
+
+# Enable only Yahoo Finance
+python main.py --enable-integrations yahoo_finance --disable-integrations fmp,alpha_vantage
+
+# Use OpenAI and disable Alpha Vantage
+python main.py --llm-provider openai --disable-integrations alpha_vantage
+```
+
+**Integration Behavior**:
+- **Disabled integrations** are skipped automatically (no API calls made)
+- **Prompts are dynamically generated** to only mention enabled integrations
+- **API optimization** uses preferred sources per data type:
+  - Stock price: Yahoo Finance (preferred) → Alpha Vantage → FMP
+  - Financial statements: FMP (preferred) → Yahoo Finance
+  - Technical indicators: Alpha Vantage only
+  - News: Yahoo Finance → FMP
+  - Historical data: Yahoo Finance only
+- **Stops after first success** to avoid redundant API calls
+- **Progress tracking** shows integration status (✓ success, ✗ failed, ⊘ skipped)
+
+### API Call Optimization
+
+The system automatically optimizes API calls:
+
+- **Smart Source Selection**: Uses preferred integration per data type
+- **Stop After Success**: Stops trying other sources once data is retrieved
+- **Parallel Execution Preserved**: Optimization happens within each parallel task
+- **Status Tracking**: Progress events show API call success/skip/failed status
+
+**Example**: When fetching stock price:
+1. Tries Yahoo Finance first (preferred)
+2. If successful, stops (doesn't try Alpha Vantage or FMP)
+3. Only tries fallback sources if preferred source fails
 
 ### Agent Configuration
 
@@ -261,14 +364,28 @@ python main.py
 
 **With options**:
 ```bash
-python main.py --provider openai --port 7860 --host 0.0.0.0
+python main.py --llm-provider openai --port 7860 --host 0.0.0.0
 ```
 
-**Options**:
-- `--provider`: LLM provider (openai, gemini, ollama, anthropic)
+**Command-Line Options**:
+- `--llm-provider`: LLM provider (openai, gemini, ollama, anthropic, lmstudio)
+- `--enable-integrations`: Comma-separated list of integrations to enable (yahoo_finance, alpha_vantage, fmp)
+- `--disable-integrations`: Comma-separated list of integrations to disable
 - `--port`: Server port (default: 7860)
 - `--host`: Server host (default: 0.0.0.0)
 - `--share`: Create public Gradio link
+
+**Examples**:
+```bash
+# Use LM Studio with only Yahoo Finance enabled
+python main.py --llm-provider lmstudio --enable-integrations yahoo_finance --disable-integrations fmp,alpha_vantage
+
+# Use OpenAI, disable FMP
+python main.py --llm-provider openai --disable-integrations fmp
+
+# Use default provider, custom port
+python main.py --port 8080
+```
 
 **Access the UI**:
 - Local: http://localhost:7860

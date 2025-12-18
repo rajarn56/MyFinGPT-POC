@@ -13,14 +13,20 @@ class ProgressTracker:
         "AGENT_COMPLETE": "agent_complete",
         "TASK_START": "task_start",
         "TASK_COMPLETE": "task_complete",
-        "TASK_PROGRESS": "task_progress"
+        "TASK_PROGRESS": "task_progress",
+        "API_CALL_START": "api_call_start",
+        "API_CALL_SUCCESS": "api_call_success",
+        "API_CALL_FAILED": "api_call_failed",
+        "API_CALL_SKIPPED": "api_call_skipped"
     }
     
     STATUS = {
         "RUNNING": "running",
         "COMPLETED": "completed",
         "FAILED": "failed",
-        "PENDING": "pending"
+        "PENDING": "pending",
+        "SUCCESS": "success",
+        "SKIPPED": "skipped"
     }
     
     @staticmethod
@@ -309,4 +315,62 @@ class ProgressTracker:
                     active_tasks[event_agent].remove(task_name)
         
         return active_tasks
+    
+    @staticmethod
+    def create_api_call_event(
+        event_type: str,
+        integration: str,
+        symbol: str,
+        data_type: Optional[str] = None,
+        status: str = "success",
+        message: Optional[str] = None,
+        error: Optional[str] = None,
+        agent: Optional[str] = None,
+        transaction_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Create API call status event (start, success, failed, skipped)
+        
+        Args:
+            event_type: Event type (api_call_start, api_call_success, api_call_failed, api_call_skipped)
+            integration: Integration name (yahoo_finance, alpha_vantage, fmp)
+            symbol: Stock symbol
+            data_type: Data type being fetched (stock_price, company_info, etc.)
+            status: Status (success, failed, skipped)
+            message: Optional message
+            error: Optional error message (for failed calls)
+            agent: Optional agent name
+            transaction_id: Optional transaction ID
+        
+        Returns:
+            API call event dictionary
+        """
+        if not message:
+            if event_type == ProgressTracker.EVENT_TYPES["API_CALL_START"]:
+                message = f"Calling {integration} API for {symbol}"
+            elif event_type == ProgressTracker.EVENT_TYPES["API_CALL_SUCCESS"]:
+                message = f"{integration} API call succeeded for {symbol}"
+            elif event_type == ProgressTracker.EVENT_TYPES["API_CALL_FAILED"]:
+                message = f"{integration} API call failed for {symbol}"
+            elif event_type == ProgressTracker.EVENT_TYPES["API_CALL_SKIPPED"]:
+                message = f"{integration} API call skipped for {symbol} (integration disabled)"
+            else:
+                message = f"{integration} API call for {symbol}"
+        
+        event = {
+            "timestamp": datetime.now().isoformat(),
+            "event_type": event_type,
+            "agent": agent or "MCP Client",
+            "integration": integration,
+            "symbol": symbol,
+            "data_type": data_type,
+            "status": status,
+            "message": message,
+            "error": error,
+            "transaction_id": transaction_id
+        }
+        
+        logger.debug(f"ProgressTracker: API call event | Integration: {integration} | Symbol: {symbol} | Status: {status}")
+        
+        return event
 
