@@ -1,0 +1,40 @@
+# Agent Configuration
+
+agents:
+  research:
+    name: "Research Agent"
+    description: "Gathers raw financial data and news"
+    max_parallel_tasks: 5
+    timeout_seconds: 60
+    
+  analyst:
+    name: "Analyst Agent"
+    description: "Analyzes data and performs deductions"
+    max_parallel_tasks: 5
+    timeout_seconds: 120
+    
+  reporting:
+    name: "Reporting Agent"
+    description: "Generates comprehensive reports"
+    max_parallel_tasks: 1
+    timeout_seconds: 90
+
+# Context settings
+context:
+  max_size_bytes: 1000000  # 1MB max context size
+  enable_pruning: true
+  enable_compression: false
+  cache_enabled: true
+
+# Citation settings
+citations:
+  required: true
+  format: "[Source: {source}, Date: {date}]"
+  include_urls: true
+
+# Token tracking
+token_tracking:
+  enabled: true
+  track_per_agent: true
+  track_per_call: true
+

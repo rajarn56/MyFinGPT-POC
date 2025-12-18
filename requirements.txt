@@ -1,0 +1,36 @@
+# Core Libraries
+langchain>=0.1.0
+langgraph>=0.0.40
+langsmith>=0.1.0
+litellm>=1.30.0
+
+# Vector Database
+chromadb>=0.4.22
+
+# Data Processing
+pandas>=2.1.0
+numpy>=1.24.0
+
+# UI
+gradio>=4.0.0
+plotly>=5.18.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+pyyaml>=6.0.0
+typing-extensions>=4.5.0
+
+# MCP Integration
+mcp>=0.1.0
+
+# Financial Data APIs (free tier libraries)
+yfinance>=0.2.28
+
+# HTTP Client
+httpx>=0.25.0
+requests>=2.31.0
+
+# Logging
+loguru>=0.7.2
+

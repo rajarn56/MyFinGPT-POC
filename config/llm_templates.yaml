@@ -1,0 +1,32 @@
+# LiteLLM Configuration Templates
+# Supports multiple LLM providers with easy switching
+
+openai:
+  model: "gpt-4"  # Options: gpt-4, gpt-3.5-turbo, gpt-4-turbo-preview
+  api_key: "${OPENAI_API_KEY}"
+  temperature: 0.7
+  max_tokens: 4000
+
+gemini:
+  model: "gemini-pro"  # Options: gemini-pro, gemini-1.5-pro
+  api_key: "${GEMINI_API_KEY}"
+  temperature: 0.7
+  max_tokens: 4000
+
+anthropic:
+  model: "claude-3-opus-20240229"  # Options: claude-3-opus, claude-3-sonnet, claude-3-haiku
+  api_key: "${ANTHROPIC_API_KEY}"
+  temperature: 0.7
+  max_tokens: 4000
+
+ollama:
+  model: "llama2"  # Options: llama2, mistral, codellama, etc.
+  api_base: "${OLLAMA_API_BASE:-http://localhost:11434}"
+  temperature: 0.7
+  max_tokens: 4000
+
+# Default provider (can be overridden via environment variable)
+default:
+  provider: "openai"
+  model: "gpt-4"
+
