@@ -254,32 +254,41 @@ class MyFinGPTUI:
         .main-row {
             height: calc(100vh - 180px);
             min-height: 500px;
-        }
-        
-        /* Ensure Row displays columns side by side */
-        .main-row > div {
-            display: flex;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: flex-start !important;
             gap: 10px;
         }
         
-        /* Columns - ensure they're side by side and visible */
-        .left-column,
-        .right-column {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
+        /* Ensure Row wrapper doesn't break layout */
+        .main-row > div {
+            display: flex !important;
+            flex-direction: row !important;
+            width: 100% !important;
+            gap: 10px;
         }
         
-        /* Ensure right column is visible and takes up space */
+        /* Columns - ensure they're side by side and scrollable */
+        .left-column,
+        .right-column {
+            display: flex !important;
+            flex-direction: column !important;
+            height: calc(100vh - 180px) !important;
+            max-height: calc(100vh - 180px) !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            flex: 1 1 50% !important;
+            align-self: flex-start !important;
+        }
+        
+        /* Ensure right column is visible and stays in place */
         .right-column {
             visibility: visible !important;
             opacity: 1 !important;
-            flex: 1 1 auto;
+            position: relative !important;
         }
         
-        /* Force right column to be visible in Gradio's grid */
+        /* Force right column wrapper to be visible in Gradio's grid */
         .right-column > div {
             display: flex !important;
             flex-direction: column !important;
@@ -307,20 +316,31 @@ class MyFinGPTUI:
             max-height: 80px;
         }
         
-        /* Execution timeline plot - responsive height (15vh with min 150px) */
+        /* Execution timeline plot - fixed height to prevent expansion */
         .progress-timeline {
-            height: 15vh !important;
-            min-height: 150px !important;
-            max-height: 300px;
+            height: 200px !important;
+            min-height: 200px !important;
+            max-height: 200px !important;
+            overflow: hidden !important;
+            flex-shrink: 0 !important;
         }
         
-        /* Progress events panels - responsive heights (15vh with min 150px) */
+        /* Ensure Plotly charts don't expand beyond container */
+        .progress-timeline > div,
+        .progress-timeline svg,
+        .progress-timeline .js-plotly-plot {
+            max-height: 200px !important;
+            height: 200px !important;
+        }
+        
+        /* Progress events panels - fixed heights to prevent expansion */
         .progress-events,
         .progress-events-log {
-            height: 15vh !important;
-            min-height: 150px !important;
-            max-height: 250px;
-            flex: 1 1 auto;
+            height: 200px !important;
+            min-height: 200px !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+            flex-shrink: 0 !important;
         }
         
         /* Tab container - fill remaining space in right column */
