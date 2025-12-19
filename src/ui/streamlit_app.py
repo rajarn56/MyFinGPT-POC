@@ -257,7 +257,7 @@ class MyFinGPTStreamlitUI:
             initial_sidebar_state="collapsed"
         )
         
-        # Custom dark theme CSS
+        # Custom dark theme CSS with improved text visibility
         st.markdown("""
         <style>
             /* Main app background */
@@ -265,62 +265,158 @@ class MyFinGPTStreamlitUI:
                 background-color: #0e1117;
             }
             
-            /* Headers */
+            /* Headers - bright and visible */
             h1 {
-                color: #fafafa;
+                color: #ffffff !important;
+                font-weight: 700;
             }
             
             h2, h3 {
-                color: #d3d3d3;
+                color: #e0e0e0 !important;
+                font-weight: 600;
+            }
+            
+            /* All markdown text - bright white */
+            .stMarkdown {
+                color: #ffffff !important;
+            }
+            
+            .stMarkdown p {
+                color: #ffffff !important;
+            }
+            
+            .stMarkdown li {
+                color: #ffffff !important;
+            }
+            
+            .stMarkdown strong {
+                color: #ffffff !important;
+                font-weight: 700;
+            }
+            
+            /* Labels - bright white */
+            label {
+                color: #ffffff !important;
+                font-weight: 500;
+            }
+            
+            .stSelectbox label,
+            .stTextArea label {
+                color: #ffffff !important;
+                font-weight: 500;
             }
             
             /* Text areas and inputs */
             .stTextArea textarea {
                 background-color: #262730;
-                color: #fafafa;
+                color: #ffffff !important;
+                border: 1px solid #4a4a4a;
             }
             
             /* Selectbox */
             .stSelectbox label {
-                color: #fafafa;
+                color: #ffffff !important;
+            }
+            
+            .stSelectbox select {
+                background-color: #262730;
+                color: #ffffff !important;
             }
             
             /* Buttons */
             .stButton > button {
                 background-color: #1f77b4;
-                color: white;
+                color: #ffffff !important;
                 border: none;
+                font-weight: 600;
             }
             
             .stButton > button:hover {
                 background-color: #1a5d8f;
             }
             
-            /* Scrollable containers */
+            /* Info boxes */
+            .stInfo {
+                background-color: #1e3a5f;
+                color: #ffffff !important;
+            }
+            
+            /* Scrollable containers - brighter background, white text */
             .scrollable-container {
                 max-height: 200px;
                 overflow-y: auto;
-                padding: 10px;
-                background-color: #262730;
+                padding: 15px;
+                background-color: #1a1a1a;
                 border-radius: 5px;
                 margin: 10px 0;
+                border: 1px solid #333333;
+            }
+            
+            .scrollable-container p,
+            .scrollable-container li,
+            .scrollable-container strong {
+                color: #ffffff !important;
             }
             
             .scrollable-container-large {
                 max-height: 600px;
                 overflow-y: auto;
-                padding: 10px;
-                background-color: #262730;
+                padding: 15px;
+                background-color: #1a1a1a;
                 border-radius: 5px;
                 margin: 10px 0;
+                border: 1px solid #333333;
+            }
+            
+            .scrollable-container-large p,
+            .scrollable-container-large li,
+            .scrollable-container-large strong,
+            .scrollable-container-large h1,
+            .scrollable-container-large h2,
+            .scrollable-container-large h3 {
+                color: #ffffff !important;
             }
             
             /* Markdown containers */
             .markdown-container {
-                padding: 10px;
-                background-color: #262730;
+                padding: 15px;
+                background-color: #1a1a1a;
                 border-radius: 5px;
                 margin: 10px 0;
+                border: 1px solid #333333;
+            }
+            
+            /* Tabs */
+            .stTabs [data-baseweb="tab-list"] {
+                background-color: #1a1a1a;
+            }
+            
+            .stTabs [data-baseweb="tab"] {
+                color: #ffffff !important;
+            }
+            
+            /* JSON display */
+            .stJson {
+                background-color: #1a1a1a;
+                color: #ffffff !important;
+            }
+            
+            /* General text elements */
+            p, span, div {
+                color: #ffffff !important;
+            }
+            
+            /* Code blocks */
+            code {
+                background-color: #2a2a2a;
+                color: #4ec9b0 !important;
+                padding: 2px 6px;
+                border-radius: 3px;
+            }
+            
+            pre {
+                background-color: #2a2a2a;
+                color: #4ec9b0 !important;
             }
         </style>
         """, unsafe_allow_html=True)
