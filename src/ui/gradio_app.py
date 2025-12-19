@@ -255,34 +255,55 @@ class MyFinGPTUI:
             flex: 1 1 auto;
             height: calc(100vh - 180px);
             min-height: 500px;
-            display: flex;
+            display: flex !important;
             overflow: visible;
             gap: 10px;
+            width: 100% !important;
+        }
+        
+        /* Target Gradio's Row wrapper */
+        .main-row > div {
+            display: flex !important;
+            width: 100% !important;
         }
         
         /* Columns - flexbox for space distribution */
         .left-column,
         .right-column {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
             overflow-y: auto;
             overflow-x: hidden;
-            flex: 1 1 50%;
+            flex: 1 1 50% !important;
             min-width: 0;
+            width: 50% !important;
+            max-width: 50% !important;
         }
         
         /* Left column - ensure proper sizing */
         .left-column {
-            flex: 1 1 50%;
+            flex: 1 1 50% !important;
             min-width: 300px;
+            width: 50% !important;
         }
         
         /* Ensure right column is visible and properly sized */
         .right-column {
-            flex: 1 1 50%;
-            min-width: 300px;
+            flex: 1 1 50% !important;
+            min-width: 300px !important;
             display: flex !important;
+            visibility: visible !important;
+            width: 50% !important;
+            max-width: 50% !important;
+            opacity: 1 !important;
+        }
+        
+        /* Force right column wrapper to be visible */
+        .right-column > div,
+        .right-column > * {
+            width: 100% !important;
+            display: block !important;
             visibility: visible !important;
         }
         
@@ -325,21 +346,34 @@ class MyFinGPTUI:
         
         /* Tab container - fill remaining space in right column using flexbox */
         .result-tabs {
-            flex: 1 1 auto;
-            min-height: 400px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
+            flex: 1 1 auto !important;
+            min-height: 400px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            width: 100% !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         
         /* Ensure Gradio tabs container fills space */
-        .result-tabs > div {
-            flex: 1 1 auto;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            height: 100%;
+        .result-tabs > div,
+        .result-tabs > * {
+            flex: 1 1 auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+            visibility: visible !important;
+        }
+        
+        /* Target Gradio's tab button container */
+        .result-tabs .tab-nav,
+        .result-tabs [role="tablist"] {
+            flex-shrink: 0 !important;
+            display: flex !important;
+            visibility: visible !important;
         }
         
         /* Tab content components - fill available space in container */
@@ -393,6 +427,32 @@ class MyFinGPTUI:
         .main-row .left-column,
         .main-row .right-column {
             padding: 0 5px;
+        }
+        
+        /* Debug: Ensure right column and tabs are always visible */
+        .right-column {
+            border: 2px solid #e0e0e0 !important;
+            background-color: #fafafa !important;
+        }
+        
+        .result-tabs {
+            border: 1px solid #d0d0d0 !important;
+            background-color: #ffffff !important;
+        }
+        
+        /* Force minimum sizes to prevent collapse */
+        .right-column {
+            min-height: 400px !important;
+        }
+        
+        .result-tabs {
+            min-height: 400px !important;
+        }
+        
+        /* Ensure tab content areas are visible */
+        .tab-content {
+            min-height: 300px !important;
+            background-color: #ffffff !important;
         }
         """
         
@@ -464,14 +524,12 @@ class MyFinGPTUI:
                             report_output = gr.Markdown(
                                 value="# Analysis & Report\n\nEnter a query above to get started.",
                                 label="Report",
-                                height=600,
                                 elem_classes=["tab-content"]
                             )
                         
                         with gr.Tab("Visualizations"):
                             visualization_output = gr.Plot(
                                 label="Charts and Visualizations",
-                                height=600,
                                 elem_classes=["tab-content"]
                             )
                         
@@ -479,7 +537,6 @@ class MyFinGPTUI:
                             agent_activity_output = gr.JSON(
                                 label="Agent Execution Metrics",
                                 value={},
-                                height=600,
                                 elem_classes=["tab-content"]
                             )
             
