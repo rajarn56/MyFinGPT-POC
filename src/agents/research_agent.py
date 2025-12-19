@@ -26,7 +26,8 @@ class ResearchAgent(BaseAgent):
         super().__init__(name="Research Agent", provider=provider)
         self.mcp_client = UnifiedMCPClient()
         self.vector_db = ChromaClient()
-        self.embedding_pipeline = EmbeddingPipeline()
+        # Keep embeddings aligned with the selected LLM provider
+        self.embedding_pipeline = EmbeddingPipeline(provider=provider)
         self.context_cache = context_cache or ContextCache()
     
     def execute(self, state: AgentState) -> AgentState:

@@ -13,6 +13,7 @@ class ContextAwareVectorDB:
     def __init__(self):
         """Initialize context-aware vector DB"""
         self.chroma_client = ChromaClient()
+        # Use global default provider for embeddings in context operations
         self.embedding_pipeline = EmbeddingPipeline()
     
     def search_similar_contexts(self, current_context: AgentState, 

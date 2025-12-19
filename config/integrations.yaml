@@ -8,12 +8,12 @@ integrations:
     requires_api_key: false
   
   alpha_vantage:
-    enabled: true
+    enabled: false
     description: "Alpha Vantage API"
     requires_api_key: true
   
   fmp:
-    enabled: true
+    enabled: false
     description: "Financial Modeling Prep API"
     requires_api_key: true
 

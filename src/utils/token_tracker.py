@@ -1,6 +1,6 @@
 """Token usage tracking utilities"""
 
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Any
 from datetime import datetime
 
 
@@ -10,7 +10,7 @@ class TokenTracker:
     def __init__(self):
         """Initialize token tracker"""
         self.token_usage: Dict[str, int] = {}  # agent_name -> total_tokens
-        self.call_history: List[Dict[str, any]] = []  # History of all calls
+        self.call_history: List[Dict[str, Any]] = []  # History of all calls
     
     def track_tokens(self, agent_name: str, tokens: int, 
                     call_type: str = "completion", model: Optional[str] = None):
@@ -49,7 +49,7 @@ class TokenTracker:
         """Get token usage breakdown by agent"""
         return self.token_usage.copy()
     
-    def get_call_history(self, agent_name: Optional[str] = None) -> List[Dict[str, any]]:
+    def get_call_history(self, agent_name: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Get call history
         
@@ -68,7 +68,7 @@ class TokenTracker:
         self.token_usage = {}
         self.call_history = []
     
-    def get_statistics(self) -> Dict[str, any]:
+    def get_statistics(self) -> Dict[str, Any]:
         """Get token usage statistics"""
         total = self.get_total_tokens()
         agent_count = len(self.token_usage)

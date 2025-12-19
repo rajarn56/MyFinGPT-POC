@@ -2,12 +2,18 @@
 
 # Load environment variables first, before importing any other modules
 from dotenv import load_dotenv
-load_dotenv()
+import os
+import argparse
+
+try:
+    # Best-effort .env loading; don't crash if file is unreadable
+    load_dotenv()
+except PermissionError as e:
+    print(f"[Warning] Could not load .env file due to permission error: {e}. "
+          "Continuing without .env; ensure required environment variables are set.")
 
 # Configure logging before importing other modules
 from src.utils.logging_config import setup_logging
-import os
-import argparse
 
 # Setup logging
 log_dir = os.getenv("LOG_DIR", "./logs")

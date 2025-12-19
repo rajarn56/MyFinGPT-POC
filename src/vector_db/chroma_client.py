@@ -100,6 +100,21 @@ class ChromaClient:
         # Add timestamp if not present
         if "timestamp" not in metadata:
             metadata["timestamp"] = datetime.now().isoformat()
+
+        # Chroma metadata must not contain None values and must be simple types.
+        # Clean and normalize metadata before sending to Chroma to avoid
+        # TypeError: 'NoneType' object cannot be converted to 'Py*' errors.
+        clean_metadata: Dict[str, Any] = {}
+        for key, value in metadata.items():
+            if value is None:
+                # Drop keys with None values
+                continue
+            # Allow basic JSON-serializable scalar types directly
+            if isinstance(value, (str, int, float, bool)):
+                clean_metadata[key] = value
+            else:
+                # Fallback: store string representation
+                clean_metadata[key] = str(value)
         
         # Generate ID if not provided
         if document_id is None:
@@ -111,14 +126,14 @@ class ChromaClient:
                 collection.add(
                     ids=[document_id],
                     documents=[document],
-                    metadatas=[metadata],
+                    metadatas=[clean_metadata],
                     embeddings=[embedding]
                 )
             else:
                 collection.add(
                     ids=[document_id],
                     documents=[document],
-                    metadatas=[metadata]
+                    metadatas=[clean_metadata]
                 )
             
             logger.info(f"[VectorDB] Document added successfully | "

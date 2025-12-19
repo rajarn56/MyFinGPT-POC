@@ -1,6 +1,6 @@
 """Main workflow orchestrator"""
 
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple, Optional, List
 from loguru import logger
 from .state import AgentState, StateManager
 from .graph import MyFinGPTGraph
@@ -21,7 +21,9 @@ class MyFinGPTWorkflow:
             context_cache: Optional context cache instance
         """
         self.context_cache = context_cache or ContextCache()
-        self.embedding_pipeline = EmbeddingPipeline()
+        # Use the same provider as the main LLM workflow so embedding behaviour
+        # (e.g., LM Studio vs OpenAI) is consistent with the selected provider.
+        self.embedding_pipeline = EmbeddingPipeline(provider=llm_provider)
         self.graph = MyFinGPTGraph(llm_provider=llm_provider, context_cache=self.context_cache)
         self.state_manager = StateManager()
     

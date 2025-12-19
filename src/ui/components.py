@@ -1,7 +1,7 @@
 """Gradio UI components"""
 
 import gradio as gr
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime

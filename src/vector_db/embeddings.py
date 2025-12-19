@@ -13,9 +13,11 @@ class EmbeddingPipeline:
         Initialize embedding pipeline
         
         Args:
-            provider: Embedding provider (openai, gemini, etc.)
+            provider: Embedding provider (openai, gemini, lmstudio, etc.)
         """
-        self.provider = provider or "openai"
+        # Default to the global LiteLLM provider if not explicitly set,
+        # falling back to OpenAI when no provider is configured.
+        self.provider = provider or llm_config.default_provider or "openai"
         self.config = llm_config.get_provider_config(self.provider)
     
     def generate_embedding(self, text: str) -> List[float]:
@@ -28,6 +30,14 @@ class EmbeddingPipeline:
         Returns:
             Embedding vector
         """
+        # LM Studio (and some other local providers) may not expose a stable
+        # embeddings endpoint via LiteLLM. To avoid noisy runtime errors like
+        # "No models loaded" when LM Studio is the active provider, we fall
+        # back to a zero-vector embedding in that case.
+        if self.provider == "lmstudio":
+            # Simple, deterministic zero vector for LM Studio mode.
+            return [0.0] * self.get_embedding_dimension()
+
         try:
             # Use LiteLLM for embeddings
             # For OpenAI
@@ -38,28 +48,17 @@ class EmbeddingPipeline:
                 )
                 return response.data[0]["embedding"]
             
-            # For other providers, use their embedding models
-            elif self.provider == "gemini":
-                # Gemini doesn't have direct embedding API in LiteLLM
-                # Use text-embedding-004 or fallback to OpenAI
-                response = litellm.embedding(
-                    model="text-embedding-ada-002",  # Fallback
-                    input=[text]
-                )
-                return response.data[0]["embedding"]
-            
-            else:
-                # Default to OpenAI embeddings
-                response = litellm.embedding(
-                    model="text-embedding-ada-002",
-                    input=[text]
-                )
-                return response.data[0]["embedding"]
+            # For other providers, currently fall back to OpenAI embeddings
+            response = litellm.embedding(
+                model="text-embedding-ada-002",
+                input=[text]
+            )
+            return response.data[0]["embedding"]
         
         except Exception as e:
             print(f"Error generating embedding: {e}")
             # Return zero vector as fallback
-            return [0.0] * 1536  # Default OpenAI embedding dimension
+            return [0.0] * self.get_embedding_dimension()  # Default OpenAI embedding dimension
     
     def generate_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
         """

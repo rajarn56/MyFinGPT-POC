@@ -192,15 +192,28 @@ class StateManager:
         return state
     
     @staticmethod
-    def add_citation(state: AgentState, source: str, url: str = None, date: str = None,
-                    agent: str = None, data_point: str = None) -> AgentState:
-        """Add a citation to the state"""
+    def add_citation(
+        state: AgentState,
+        source: str,
+        url: str = None,
+        date: str = None,
+        agent: str = None,
+        data_point: str = None,
+        symbol: Optional[str] = None,
+    ) -> AgentState:
+        """
+        Add a citation to the state.
+
+        Note: `symbol` is optional and may be present when citations are created
+        by symbol-aware components (e.g., MCP clients, research agent).
+        """
         citation = {
             "source": source,
             "url": url,
             "date": date or datetime.now().isoformat(),
             "agent": agent,
-            "data_point": data_point
+            "data_point": data_point,
+            "symbol": symbol,
         }
         state["citations"].append(citation)
         return state
