@@ -252,59 +252,38 @@ class MyFinGPTUI:
         
         /* Horizontal split row - main content area */
         .main-row {
-            flex: 1 1 auto;
             height: calc(100vh - 180px);
             min-height: 500px;
-            display: flex !important;
-            overflow: visible;
-            gap: 10px;
-            width: 100% !important;
         }
         
-        /* Target Gradio's Row wrapper */
+        /* Ensure Row displays columns side by side */
         .main-row > div {
-            display: flex !important;
-            width: 100% !important;
+            display: flex;
+            gap: 10px;
         }
         
-        /* Columns - flexbox for space distribution */
+        /* Columns - ensure they're side by side and visible */
         .left-column,
         .right-column {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        /* Ensure right column is visible and takes up space */
+        .right-column {
+            visibility: visible !important;
+            opacity: 1 !important;
+            flex: 1 1 auto;
+        }
+        
+        /* Force right column to be visible in Gradio's grid */
+        .right-column > div {
             display: flex !important;
             flex-direction: column !important;
             height: 100% !important;
-            overflow-y: auto;
-            overflow-x: hidden;
-            flex: 1 1 50% !important;
-            min-width: 0;
-            width: 50% !important;
-            max-width: 50% !important;
-        }
-        
-        /* Left column - ensure proper sizing */
-        .left-column {
-            flex: 1 1 50% !important;
-            min-width: 300px;
-            width: 50% !important;
-        }
-        
-        /* Ensure right column is visible and properly sized */
-        .right-column {
-            flex: 1 1 50% !important;
-            min-width: 300px !important;
-            display: flex !important;
-            visibility: visible !important;
-            width: 50% !important;
-            max-width: 50% !important;
-            opacity: 1 !important;
-        }
-        
-        /* Force right column wrapper to be visible */
-        .right-column > div,
-        .right-column > * {
-            width: 100% !important;
-            display: block !important;
-            visibility: visible !important;
         }
         
         /* Query input - responsive height (8vh with min 80px) */
@@ -344,62 +323,21 @@ class MyFinGPTUI:
             flex: 1 1 auto;
         }
         
-        /* Tab container - fill remaining space in right column using flexbox */
+        /* Tab container - fill remaining space in right column */
         .result-tabs {
-            flex: 1 1 auto !important;
-            min-height: 400px !important;
-            display: flex !important;
-            flex-direction: column !important;
-            height: 100% !important;
-            width: 100% !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        
-        /* Ensure Gradio tabs container fills space */
-        .result-tabs > div,
-        .result-tabs > * {
-            flex: 1 1 auto !important;
-            display: flex !important;
-            flex-direction: column !important;
-            min-height: 0 !important;
-            height: 100% !important;
-            width: 100% !important;
-            visibility: visible !important;
-        }
-        
-        /* Target Gradio's tab button container */
-        .result-tabs .tab-nav,
-        .result-tabs [role="tablist"] {
-            flex-shrink: 0 !important;
-            display: flex !important;
-            visibility: visible !important;
-        }
-        
-        /* Tab content components - fill available space in container */
-        .tab-content {
-            min-height: 400px !important;
-            height: 100% !important;
-            max-height: 100% !important;
-            overflow-y: auto !important;
             flex: 1 1 auto;
-        }
-        
-        /* Ensure tab panels are properly sized */
-        .result-tabs .tab-nav {
-            flex-shrink: 0;
-        }
-        
-        /* Target Gradio's tab panel wrapper - ensure it fills available space */
-        .result-tabs [class*="tab-content-wrapper"],
-        .result-tabs [class*="tab-panel"],
-        .result-tabs > div > div {
-            flex: 1 1 auto;
+            min-height: 400px;
+            height: 100%;
+            width: 100%;
             display: flex;
             flex-direction: column;
-            min-height: 0;
-            overflow: hidden;
+        }
+        
+        /* Tab content components - fill available space */
+        .tab-content {
+            min-height: 400px;
             height: 100%;
+            overflow-y: auto;
         }
         
         /* Ensure scrollable content works */
@@ -429,30 +367,22 @@ class MyFinGPTUI:
             padding: 0 5px;
         }
         
-        /* Debug: Ensure right column and tabs are always visible */
-        .right-column {
-            border: 2px solid #e0e0e0 !important;
-            background-color: #fafafa !important;
-        }
-        
-        .result-tabs {
-            border: 1px solid #d0d0d0 !important;
-            background-color: #ffffff !important;
-        }
-        
-        /* Force minimum sizes to prevent collapse */
+        /* Ensure right column and tabs are visible with minimum sizes */
         .right-column {
             min-height: 400px !important;
+            min-width: 300px !important;
         }
         
         .result-tabs {
             min-height: 400px !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
         }
         
         /* Ensure tab content areas are visible */
         .tab-content {
             min-height: 300px !important;
-            background-color: #ffffff !important;
         }
         """
         
