@@ -226,6 +226,52 @@ export LM_STUDIO_MODEL=your-model-name
 export LITELLM_PROVIDER=lmstudio
 ```
 
+### Embedding Model Configuration
+
+MyFinGPT uses embeddings for semantic search in the vector database. You can configure a separate embedding provider/model from your LLM provider.
+
+**Configuration Options**:
+
+1. **Via Environment Variables** (recommended):
+```bash
+# Use a different provider for embeddings
+export EMBEDDING_PROVIDER=lmstudio
+
+# Specify the embedding model name (for LMStudio, this is your embedding model name)
+export EMBEDDING_MODEL=your-embedding-model-name
+```
+
+2. **Via Config File** (`config/llm_templates.yaml`):
+```yaml
+lmstudio:
+  model: "${LM_STUDIO_MODEL:-local-model}"
+  api_base: "${LM_STUDIO_API_BASE:-http://localhost:1234/v1}"
+  embedding_model: "${LM_STUDIO_EMBEDDING_MODEL:-text-embedding-ada-002}"  # Your LMStudio embedding model
+  temperature: 0.7
+  max_tokens: 10000
+```
+
+**How It Works**:
+- If `EMBEDDING_PROVIDER` is set, it uses that provider for embeddings (can be different from LLM provider)
+- If `EMBEDDING_MODEL` is set, it uses that specific model name
+- For LMStudio: The code will try to use your LMStudio embedding model first, then fall back to OpenAI embeddings if needed
+- Model name priority: `EMBEDDING_MODEL` env var > config `embedding_model` > config `model` > default
+
+**Example: Using LMStudio for LLM, OpenAI for Embeddings**:
+```bash
+export LITELLM_PROVIDER=lmstudio
+export EMBEDDING_PROVIDER=openai
+export OPENAI_API_KEY=your-openai-key
+```
+
+**Example: Using LMStudio for Both LLM and Embeddings**:
+```bash
+export LITELLM_PROVIDER=lmstudio
+export EMBEDDING_PROVIDER=lmstudio
+export EMBEDDING_MODEL=your-lmstudio-embedding-model-name
+export LM_STUDIO_API_BASE=http://localhost:1234/v1
+```
+
 ### Integration Configuration
 
 Control which data source integrations are enabled/disabled:

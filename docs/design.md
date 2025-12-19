@@ -339,6 +339,25 @@ merged_state = StateManager.merge_parallel_contexts(research_results)
 - Uses LiteLLM for embedding generation
 - Default: OpenAI text-embedding-ada-002 (1536 dimensions)
 - Supports batch embedding generation
+- **Separate embedding provider**: Can use different provider/model than LLM calls
+- **LMStudio support**: Can use LMStudio embedding models with automatic OpenAI fallback
+- **Configurable model**: Supports `EMBEDDING_MODEL` environment variable or config file
+
+**Configuration Options**:
+1. **Environment Variables**:
+   - `EMBEDDING_PROVIDER`: Override embedding provider (e.g., "lmstudio", "openai")
+   - `EMBEDDING_MODEL`: Override embedding model name (e.g., "your-lmstudio-embedding-model")
+2. **Config File** (`config/llm_templates.yaml`):
+   - `embedding_model`: Model name for embeddings (provider-specific)
+   - Example: `lmstudio.embedding_model: "your-embedding-model-name"`
+
+**Provider Behavior**:
+- **OpenAI**: Uses `text-embedding-ada-002` by default
+- **LMStudio**: 
+  - Tries LMStudio embedding model first (using configured model name)
+  - Falls back to OpenAI embeddings if LMStudio fails (requires `OPENAI_API_KEY`)
+  - Returns zero vectors only if both fail
+- **Other providers**: Falls back to OpenAI embeddings
 
 **Methods**:
 - `generate_embedding(text)`: Generate single embedding

@@ -93,9 +93,16 @@ Unified MCP client wrapper provides:
 Chroma vector database with:
 - Three collections: `financial_news`, `company_analysis`, `market_trends`
 - Embedding pipeline using LiteLLM
+- **Separate embedding configuration**: Can use different provider/model than LLM calls
+- **LMStudio embedding support**: Supports LMStudio embedding models with OpenAI fallback
 - Context-aware semantic search
 - Historical pattern storage and retrieval
 - **Permanent storage**: Data persists on disk until manually deleted
+
+**Embedding Configuration**:
+- Configurable via `EMBEDDING_PROVIDER` and `EMBEDDING_MODEL` environment variables
+- Supports separate embedding provider from LLM provider (e.g., LMStudio LLM + OpenAI embeddings)
+- Model selection priority: env vars > config file > defaults
 
 ### 2.5 Context Cache Layer
 

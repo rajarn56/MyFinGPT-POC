@@ -629,6 +629,68 @@ print('Collection stats:', stats)
 - Check collection statistics
 - Monitor embedding generation
 
+#### Embedding Configuration
+
+The embedding pipeline supports separate configuration from the LLM provider, allowing you to use different models for embeddings vs. LLM calls.
+
+**Environment Variables**:
+```bash
+# Use a different provider for embeddings
+export EMBEDDING_PROVIDER=lmstudio  # or openai, etc.
+
+# Specify the embedding model name (required for LMStudio)
+export EMBEDDING_MODEL=your-embedding-model-name
+```
+
+**Config File** (`config/llm_templates.yaml`):
+```yaml
+lmstudio:
+  model: "${LM_STUDIO_MODEL:-local-model}"
+  api_base: "${LM_STUDIO_API_BASE:-http://localhost:1234/v1}"
+  embedding_model: "${LM_STUDIO_EMBEDDING_MODEL:-text-embedding-ada-002}"
+  temperature: 0.7
+  max_tokens: 10000
+```
+
+**Model Selection Priority**:
+1. Explicit `model` parameter in `EmbeddingPipeline(model="...")`
+2. `EMBEDDING_MODEL` environment variable
+3. `embedding_model` field in config file
+4. `model` field in config file (for LMStudio)
+5. Default: `text-embedding-ada-002` (OpenAI)
+
+**LMStudio Embedding Support**:
+- When `EMBEDDING_PROVIDER=lmstudio` (or LLM provider is lmstudio), the system will:
+  1. Try to use your LMStudio embedding model first (using `EMBEDDING_MODEL` or config)
+  2. Format model name as `openai/your-model-name` for LiteLLM compatibility
+  3. Fall back to OpenAI embeddings if LMStudio fails (requires `OPENAI_API_KEY`)
+  4. Return zero vectors only if both fail
+
+**Example: Using LMStudio for Embeddings**:
+```bash
+# Set embedding model name
+export EMBEDDING_MODEL=your-lmstudio-embedding-model
+export EMBEDDING_PROVIDER=lmstudio
+export LM_STUDIO_API_BASE=http://localhost:1234/v1
+
+# Test embedding generation
+python -c "
+from src.vector_db.embeddings import EmbeddingPipeline
+pipeline = EmbeddingPipeline()
+embedding = pipeline.generate_embedding('Test text')
+print('Embedding dimension:', len(embedding))
+print('Is zero vector:', all(x == 0.0 for x in embedding))
+"
+```
+
+**Example: Using OpenAI for Embeddings (with LMStudio LLM)**:
+```bash
+# Use LMStudio for LLM, OpenAI for embeddings
+export LITELLM_PROVIDER=lmstudio
+export EMBEDDING_PROVIDER=openai
+export OPENAI_API_KEY=your-openai-key
+```
+
 #### Data Storage: Context Cache vs Vector Database
 
 This section clearly explains what data is stored in **Context Cache** vs **Vector Database (ChromaDB)**, their purposes, retention policies, and when each is used.

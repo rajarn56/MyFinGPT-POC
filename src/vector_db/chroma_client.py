@@ -262,7 +262,7 @@ class ChromaClient:
             collection_name=collection_name,
             query_text="",
             n_results=n_results,
-            query_embeddings=[query_embedding],
+            query_embeddings=query_embedding,  # Pass directly, query() will wrap it
             where=where
         )
         
