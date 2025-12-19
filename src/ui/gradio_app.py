@@ -240,123 +240,34 @@ class MyFinGPTUI:
     
     def create_interface(self):
         """Create Gradio interface"""
-        # Custom CSS for responsive viewport-based heights
-        # Using viewport height (vh) units for responsive sizing
+        # Custom CSS for component styling
         responsive_css = """
-        /* Main container - use full viewport height */
-        .gradio-container {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Horizontal split row - main content area */
-        .main-row {
-            height: calc(100vh - 180px);
-            min-height: 500px;
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: flex-start !important;
-            gap: 10px;
-        }
-        
-        /* Ensure Row wrapper doesn't break layout */
-        .main-row > div {
-            display: flex !important;
-            flex-direction: row !important;
-            width: 100% !important;
-            gap: 10px;
-        }
-        
-        /* Columns - ensure they're side by side and scrollable */
-        .left-column,
-        .right-column {
-            display: flex !important;
-            flex-direction: column !important;
-            height: calc(100vh - 180px) !important;
-            max-height: calc(100vh - 180px) !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            flex: 1 1 50% !important;
-            align-self: flex-start !important;
-        }
-        
-        /* Ensure right column is visible and stays in place */
-        .right-column {
-            visibility: visible !important;
-            opacity: 1 !important;
-            position: relative !important;
-        }
-        
-        /* Force right column wrapper to be visible in Gradio's grid */
-        .right-column > div {
-            display: flex !important;
-            flex-direction: column !important;
-            height: 100% !important;
-        }
-        
-        /* Query input - responsive height (8vh with min 80px) */
+        /* Query input - responsive height */
         .query-input {
-            height: 8vh !important;
-            min-height: 80px !important;
-            max-height: 120px;
+            height: 100px;
         }
         
-        /* Progress status - responsive height (4vh with min 40px) */
-        .progress-status {
-            height: 4vh !important;
-            min-height: 40px !important;
-            max-height: 80px;
-        }
-        
-        /* Progress tasks - responsive height (4vh with min 40px) */
+        /* Progress status and tasks */
+        .progress-status,
         .progress-tasks {
-            height: 4vh !important;
-            min-height: 40px !important;
-            max-height: 80px;
+            height: 50px;
         }
         
-        /* Execution timeline plot - fixed height to prevent expansion */
+        /* Execution timeline plot - fixed height */
         .progress-timeline {
-            height: 200px !important;
-            min-height: 200px !important;
-            max-height: 200px !important;
-            overflow: hidden !important;
-            flex-shrink: 0 !important;
+            height: 300px;
         }
         
-        /* Ensure Plotly charts don't expand beyond container */
-        .progress-timeline > div,
-        .progress-timeline svg,
-        .progress-timeline .js-plotly-plot {
-            max-height: 200px !important;
-            height: 200px !important;
-        }
-        
-        /* Progress events panels - fixed heights to prevent expansion */
+        /* Progress events panels - scrollable */
         .progress-events,
         .progress-events-log {
-            height: 200px !important;
-            min-height: 200px !important;
-            max-height: 200px !important;
-            overflow-y: auto !important;
-            flex-shrink: 0 !important;
+            height: 200px;
+            overflow-y: auto;
         }
         
-        /* Tab container - fill remaining space in right column */
-        .result-tabs {
-            flex: 1 1 auto;
-            min-height: 400px;
-            height: 100%;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Tab content components - fill available space */
+        /* Tab content - scrollable */
         .tab-content {
-            min-height: 400px;
-            height: 100%;
+            height: 600px;
             overflow-y: auto;
         }
         
@@ -366,54 +277,15 @@ class MyFinGPTUI:
         .gr-json {
             overflow-y: auto;
         }
-        
-        /* Responsive adjustments for smaller screens */
-        @media (max-width: 1200px) {
-            .main-row {
-                flex-direction: column;
-            }
-            
-            .left-column,
-            .right-column {
-                max-width: 100%;
-                width: 100%;
-                flex: 1 1 100%;
-            }
-        }
-        
-        /* Ensure proper spacing between columns */
-        .main-row .left-column,
-        .main-row .right-column {
-            padding: 0 5px;
-        }
-        
-        /* Ensure right column and tabs are visible with minimum sizes */
-        .right-column {
-            min-height: 400px !important;
-            min-width: 300px !important;
-        }
-        
-        .result-tabs {
-            min-height: 400px !important;
-            height: 100% !important;
-            display: flex !important;
-            flex-direction: column !important;
-        }
-        
-        /* Ensure tab content areas are visible */
-        .tab-content {
-            min-height: 300px !important;
-        }
         """
         
         with gr.Blocks(title="MyFinGPT - Multi-Agent Financial Analysis", theme=gr.themes.Soft(), css=responsive_css) as app:
             gr.Markdown("# MyFinGPT - Multi-Agent Financial Analysis System")
             gr.Markdown("Ask questions about stocks, compare companies, analyze trends, and get comprehensive financial insights.")
             
-            # Horizontal split layout (50/50)
-            with gr.Row(elem_classes=["main-row"]):
-                # Left Column (50%) - Input and Progress
-                with gr.Column(scale=1, elem_classes=["left-column"]):
+            # Row 1: Query Input
+            with gr.Row():
+                with gr.Column(scale=3):
                     query_input = gr.Textbox(
                         label="Enter your financial query",
                         placeholder="e.g., Analyze Apple Inc. (AAPL) stock",
@@ -421,17 +293,19 @@ class MyFinGPTUI:
                         elem_classes=["query-input"]
                     )
                     
+                    with gr.Row():
+                        submit_btn = gr.Button("Submit Query", variant="primary")
+                        clear_btn = gr.Button("Clear")
+                    
                     example_queries = gr.Dropdown(
                         label="Example Queries",
                         choices=EXAMPLE_QUERIES,
                         value=None
                     )
-                    
-                    with gr.Row():
-                        submit_btn = gr.Button("Submit Query", variant="primary")
-                        clear_btn = gr.Button("Clear")
-                    
-                    # Execution Progress Panel
+            
+            # Row 2: Progress Panel (full width)
+            with gr.Row():
+                with gr.Column():
                     gr.Markdown("### Execution Progress")
                     progress_status = gr.Markdown(
                         value="**Current Agent:** Waiting for query...",
@@ -444,14 +318,12 @@ class MyFinGPTUI:
                         elem_classes=["progress-tasks"]
                     )
                     
-                    # Execution Timeline Panel
                     gr.Markdown("### Execution Timeline")
                     progress_timeline = gr.Plot(
                         label="Execution Timeline",
                         elem_classes=["progress-timeline"]
                     )
                     
-                    # Progress Events Panel (scrollable)
                     gr.Markdown("### Progress Events")
                     progress_events = gr.Markdown(
                         value="**Progress Events:**\n\nWaiting for execution...",
@@ -459,36 +331,34 @@ class MyFinGPTUI:
                         elem_classes=["progress-events"]
                     )
                     
-                    # Progress Events Log Panel (scrollable)
                     gr.Markdown("### Progress Events Log")
                     progress_events_log = gr.Markdown(
                         value="**Progress Events Log:**\n\nWaiting for execution...",
                         label="Progress Events Log",
                         elem_classes=["progress-events-log"]
                     )
+            
+            # Row 3: Result Tabs (full width)
+            with gr.Tabs():
+                with gr.Tab("Analysis & Report"):
+                    report_output = gr.Markdown(
+                        value="# Analysis & Report\n\nEnter a query above to get started.",
+                        label="Report",
+                        elem_classes=["tab-content"]
+                    )
                 
-                # Right Column (50%) - Result Tabs
-                with gr.Column(scale=1, elem_classes=["right-column"]):
-                    with gr.Tabs(elem_classes=["result-tabs"]):
-                        with gr.Tab("Analysis & Report"):
-                            report_output = gr.Markdown(
-                                value="# Analysis & Report\n\nEnter a query above to get started.",
-                                label="Report",
-                                elem_classes=["tab-content"]
-                            )
-                        
-                        with gr.Tab("Visualizations"):
-                            visualization_output = gr.Plot(
-                                label="Charts and Visualizations",
-                                elem_classes=["tab-content"]
-                            )
-                        
-                        with gr.Tab("Agent Activity"):
-                            agent_activity_output = gr.JSON(
-                                label="Agent Execution Metrics",
-                                value={},
-                                elem_classes=["tab-content"]
-                            )
+                with gr.Tab("Visualizations"):
+                    visualization_output = gr.Plot(
+                        label="Charts and Visualizations",
+                        elem_classes=["tab-content"]
+                    )
+                
+                with gr.Tab("Agent Activity"):
+                    agent_activity_output = gr.JSON(
+                        label="Agent Execution Metrics",
+                        value={},
+                        elem_classes=["tab-content"]
+                    )
             
             # Event handlers
             submit_btn.click(
