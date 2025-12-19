@@ -622,10 +622,16 @@ python main.py
 
 4. **Click "Submit Query"** and wait for results
 
-5. **View results** in three tabs:
-   - **Analysis & Report**: Comprehensive report with citations
-   - **Trends & Visualizations**: Interactive charts
-   - **Agent Activity & Token Usage**: Execution metrics
+5. **View results** in three tabs (right column):
+   - **Analysis & Report**: Comprehensive report with citations (scrollable, ~600px height)
+   - **Visualizations**: Interactive charts (scrollable, ~600px height)
+   - **Agent Activity**: Execution metrics and token usage (scrollable, ~600px height)
+
+6. **Monitor progress** in left column:
+   - Current agent status and active tasks
+   - Execution timeline visualization
+   - Progress events (recent events)
+   - Progress events log (all events)
 
 ### Example Queries
 
@@ -669,13 +675,32 @@ Analyze how recent news and market sentiment have affected NVIDIA (NVDA) stock p
 - Execution time per agent
 - Context size metrics
 
+### UI Layout
+
+The UI uses a horizontal split-screen layout (50/50) for single-screen visibility:
+
+**Left Column (50%)**:
+- **Query Input**: Enter your financial query (~100px height)
+- **Example Queries Dropdown**: Select from pre-defined examples
+- **Submit/Clear Buttons**: Process your query or clear inputs
+- **Execution Progress**: Current agent status and active tasks (~100px total)
+- **Execution Timeline**: Visual timeline chart (~200px height)
+- **Progress Events**: Recent progress events (~200px height, scrollable)
+- **Progress Events Log**: Complete progress log (~200px height, scrollable)
+
+**Right Column (50%)**:
+- **Tabs**: Switch between Analysis & Report, Visualizations, and Agent Activity
+- All tab content is scrollable with ~600px height
+- All tabs visible and clickable simultaneously
+
 ### UI Navigation
 
-- **Query Input**: Enter your financial query
-- **Example Queries Dropdown**: Select from pre-defined examples
-- **Submit Query**: Process your query
-- **Clear**: Clear the input and results
-- **Tabs**: Switch between Analysis, Visualizations, and Agent Activity
+- **Query Input** (left column): Enter your financial query
+- **Example Queries Dropdown** (left column): Select from pre-defined examples
+- **Submit Query** (left column): Process your query
+- **Clear** (left column): Clear the input and results
+- **Progress Panels** (left column): Monitor real-time execution progress
+- **Tabs** (right column): Switch between Analysis & Report, Visualizations, and Agent Activity
 
 ## Development
 

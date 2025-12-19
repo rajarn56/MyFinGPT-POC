@@ -116,7 +116,10 @@ python main.py --share
 - Server starts on http://localhost:7860 (or specified port)
 - Logs show: `[UI] Launching Gradio app | Host: 0.0.0.0 | Port: 7860`
 - Browser opens automatically (or navigate manually)
-- UI shows query input panel, progress panel, and three tabs
+- UI shows horizontal split layout with responsive viewport-based heights:
+  - Left column: Query input, controls, and progress panels (responsive heights using vh units)
+  - Right column: Three result tabs (Analysis & Report, Visualizations, Agent Activity) with responsive heights
+  - All components adapt to screen size while maintaining minimum heights for usability
 
 **Logs to look for:**
 ```
@@ -1426,6 +1429,13 @@ kill <PID>
 # Or use different port
 python main.py --port 7861
 ```
+
+**Issue: Responsive heights not working**
+- Verify Gradio version supports `css` parameter: `pip show gradio` (requires v4.0.0+)
+- Check browser console for CSS errors
+- Verify `elem_classes` are applied correctly in browser DevTools
+- Test on different screen sizes to verify responsive behavior
+- Ensure custom CSS is being loaded (check Network tab in DevTools)
 
 **Issue: UI not loading**
 - Check logs for errors

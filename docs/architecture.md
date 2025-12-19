@@ -119,13 +119,32 @@ In-memory caching system (`ContextCache`) with:
 
 ### 2.6 UI Layer (Gradio)
 
-Gradio-based web interface with:
-- Query input panel
-- Progress panel showing real-time agent execution status
-- Three tabs: Analysis & Report, Visualizations, Agent Activity
+Gradio-based web interface with horizontal split-screen layout (50/50) and responsive viewport-based heights:
+
+**Left Column (50%)**:
+- Query input textbox (8vh height, min 80px, responsive)
+- Example queries dropdown
+- Submit/Clear buttons
+- Execution Progress panel:
+  - Current Agent Status (4vh height, min 40px, responsive)
+  - Active Tasks (4vh height, min 40px, responsive)
+- Execution Timeline panel (15vh height, min 150px, responsive, Plotly chart)
+- Progress Events panel (15vh height, min 150px, responsive, scrollable, recent events)
+- Progress Events Log panel (15vh height, min 150px, responsive, scrollable, all events)
+
+**Right Column (50%)**:
+- Three tabs with scrollable content (calc(100vh - 250px) height, min 400px, responsive):
+  - **Analysis & Report**: Comprehensive report with citations
+  - **Visualizations**: Interactive charts (Plotly)
+  - **Agent Activity**: Execution metrics and token usage
+
+**Features**:
 - Real-time progress updates with streaming
+- All content visible in single screen
+- Scrollable panels for long content
 - Interactive visualizations (Plotly)
 - Execution timeline visualization
+- **Responsive Design**: Uses custom CSS with viewport height (vh) units for adaptive sizing across different screen sizes
 
 ### 2.7 Progress Tracking System
 

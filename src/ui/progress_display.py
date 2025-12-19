@@ -203,7 +203,7 @@ def create_agent_status_display(current_agent: Optional[str], current_tasks: Dic
 
 def format_progress_events_markdown(progress_events: List[Dict[str, Any]], max_events: int = 20) -> str:
     """
-    Format progress events as markdown with API call status indicators
+    Format progress events as markdown with API call status indicators (recent events)
     
     Args:
         progress_events: List of progress events
@@ -242,7 +242,54 @@ def format_progress_events_markdown(progress_events: List[Dict[str, Any]], max_e
         markdown += f"- {formatted}\n"
     
     if len(progress_events) > max_events:
-        markdown += f"\n*... and {len(progress_events) - max_events} more events*\n"
+        markdown += f"\n*... and {len(progress_events) - max_events} more events (see Progress Events Log for full log)*\n"
+    
+    # Add API call summary if there are API events
+    if api_call_events:
+        success_count = sum(1 for e in api_call_events if e.get("status") == "success")
+        failed_count = sum(1 for e in api_call_events if e.get("status") == "failed")
+        skipped_count = sum(1 for e in api_call_events if e.get("status") == "skipped")
+        
+        markdown += f"\n**API Call Summary:** ✓ {success_count} succeeded, ✗ {failed_count} failed, ⊘ {skipped_count} skipped\n"
+    
+    return markdown
+
+
+def format_progress_events_log_markdown(progress_events: List[Dict[str, Any]]) -> str:
+    """
+    Format all progress events as markdown for the full log panel
+    
+    Args:
+        progress_events: List of all progress events
+    
+    Returns:
+        Formatted markdown string with all events
+    """
+    if not progress_events:
+        return "**Progress Events Log:**\n\nNo events yet."
+    
+    markdown = f"**Progress Events Log:** ({len(progress_events)} total events)\n\n"
+    
+    # Group API call events by integration for better readability
+    api_call_events = []
+    other_events = []
+    
+    for event in progress_events:
+        event_type = event.get("event_type", "")
+        if event_type in ["api_call_start", "api_call_success", "api_call_failed", "api_call_skipped"]:
+            api_call_events.append(event)
+        else:
+            other_events.append(event)
+    
+    # Format API call events with status indicators
+    for event in api_call_events:
+        formatted = format_progress_event(event)
+        markdown += f"- {formatted}\n"
+    
+    # Format other events
+    for event in other_events:
+        formatted = format_progress_event(event)
+        markdown += f"- {formatted}\n"
     
     # Add API call summary if there are API events
     if api_call_events:
@@ -271,7 +318,7 @@ def update_progress_display(
         execution_order: Execution order entries
     
     Returns:
-        Tuple of (agent_status, tasks_display, events_display, timeline_figure)
+        Tuple of (agent_status, tasks_display, events_display, events_log_display, timeline_figure)
     """
     # Format agent status
     agent_status = create_agent_status_display(current_agent, current_tasks)
@@ -284,11 +331,14 @@ def update_progress_display(
     else:
         tasks_text = "**Active Tasks:** None"
     
-    # Format progress events
+    # Format progress events (recent events)
     events_markdown = format_progress_events_markdown(progress_events)
+    
+    # Format progress events log (all events)
+    events_log_markdown = format_progress_events_log_markdown(progress_events)
     
     # Create timeline
     timeline_figure = create_execution_timeline(execution_order)
     
-    return agent_status, tasks_text, events_markdown, timeline_figure
+    return agent_status, tasks_text, events_markdown, events_log_markdown, timeline_figure
 

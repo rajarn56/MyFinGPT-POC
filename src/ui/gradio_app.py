@@ -57,7 +57,7 @@ class MyFinGPTUI:
             progress: Gradio progress tracker
         
         Yields:
-            Tuple of (report, visualizations, agent_activity, progress_status, progress_tasks, progress_events, progress_timeline)
+            Tuple of (report, visualizations, agent_activity, progress_status, progress_tasks, progress_events, progress_events_log, progress_timeline)
             Yields multiple times as progress updates occur
         """
         import time
@@ -70,6 +70,7 @@ class MyFinGPTUI:
                    "**Current Agent:** Waiting for query...",
                    "**Active Tasks:** None",
                    "**Progress Events:**\n\nNo events yet.",
+                   "**Progress Events Log:**\n\nNo events yet.",
                    None)
             return
         
@@ -88,6 +89,7 @@ class MyFinGPTUI:
         agent_status = "**Current Agent:** Initializing..."
         tasks_text = "**Active Tasks:** None"
         events_markdown = "**Progress Events:**\n\nStarting execution..."
+        events_log_markdown = "**Progress Events Log:**\n\nStarting execution..."
         timeline_fig = None
         
         try:
@@ -106,13 +108,13 @@ class MyFinGPTUI:
                     final_state = state
                     
                     # Update progress display in real-time
-                    agent_status, tasks_text, events_markdown, timeline_fig = update_progress_display(
+                    agent_status, tasks_text, events_markdown, events_log_markdown, timeline_fig = update_progress_display(
                         progress_events, current_agent, current_tasks, execution_order
                     )
                     
                     # Yield REAL-TIME progress update
                     yield (report_with_id, plot_figure, agent_activity,
-                          agent_status, tasks_text, events_markdown, timeline_fig)
+                          agent_status, tasks_text, events_markdown, events_log_markdown, timeline_fig)
                     
                     logger.debug(f"[UI] Progress update yielded | Agent: {current_agent} | Events: {len(progress_events)}")
                 
@@ -195,7 +197,7 @@ class MyFinGPTUI:
             final_current_tasks = result.get("current_tasks", current_tasks)
             final_execution_order = result.get("execution_order", execution_order)
             
-            agent_status, tasks_text, events_markdown, timeline_fig = update_progress_display(
+            agent_status, tasks_text, events_markdown, events_log_markdown, timeline_fig = update_progress_display(
                 final_progress_events, final_current_agent, final_current_tasks, final_execution_order
             )
             
@@ -213,7 +215,7 @@ class MyFinGPTUI:
             
             # Yield final result
             yield (report_with_id, plot_figure, agent_activity, 
-                  agent_status, tasks_text, events_markdown, timeline_fig)
+                  agent_status, tasks_text, events_markdown, events_log_markdown, timeline_fig)
         
         except GuardrailsError as e:
             total_time = time.time() - start_time
@@ -223,6 +225,7 @@ class MyFinGPTUI:
                   "**Current Agent:** Error occurred",
                   "**Active Tasks:** None",
                   f"**Progress Events:**\n\nError: {str(e)}",
+                  f"**Progress Events Log:**\n\nError: {str(e)}",
                   None)
         except Exception as e:
             total_time = time.time() - start_time
@@ -232,85 +235,199 @@ class MyFinGPTUI:
                   "**Current Agent:** Error occurred",
                   "**Active Tasks:** None",
                   f"**Progress Events:**\n\nError: {str(e)}",
+                  f"**Progress Events Log:**\n\nError: {str(e)}",
                   None)
     
     def create_interface(self):
         """Create Gradio interface"""
-        with gr.Blocks(title="MyFinGPT - Multi-Agent Financial Analysis", theme=gr.themes.Soft()) as app:
+        # Custom CSS for responsive viewport-based heights
+        # Using viewport height (vh) units for responsive sizing
+        responsive_css = """
+        /* Main container - use full viewport height */
+        .gradio-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Horizontal split row - main content area */
+        .main-row {
+            flex: 1 1 auto;
+            height: calc(100vh - 180px);
+            min-height: 500px;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Columns - flexbox for space distribution */
+        .left-column,
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1 1 50%;
+        }
+        
+        /* Query input - responsive height (8vh with min 80px) */
+        .query-input {
+            height: 8vh !important;
+            min-height: 80px !important;
+            max-height: 120px;
+        }
+        
+        /* Progress status - responsive height (4vh with min 40px) */
+        .progress-status {
+            height: 4vh !important;
+            min-height: 40px !important;
+            max-height: 80px;
+        }
+        
+        /* Progress tasks - responsive height (4vh with min 40px) */
+        .progress-tasks {
+            height: 4vh !important;
+            min-height: 40px !important;
+            max-height: 80px;
+        }
+        
+        /* Execution timeline plot - responsive height (15vh with min 150px) */
+        .progress-timeline {
+            height: 15vh !important;
+            min-height: 150px !important;
+            max-height: 300px;
+        }
+        
+        /* Progress events panels - responsive heights (15vh with min 150px) */
+        .progress-events,
+        .progress-events-log {
+            height: 15vh !important;
+            min-height: 150px !important;
+            max-height: 250px;
+            flex: 1 1 auto;
+        }
+        
+        /* Tab container - fill remaining space in right column */
+        .result-tabs {
+            height: 100%;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Tab content components - responsive heights */
+        .tab-content {
+            height: calc(100vh - 250px) !important;
+            min-height: 400px !important;
+        }
+        
+        /* Ensure scrollable content works */
+        .gr-markdown,
+        .gr-plot,
+        .gr-json {
+            overflow-y: auto;
+        }
+        """
+        
+        with gr.Blocks(title="MyFinGPT - Multi-Agent Financial Analysis", theme=gr.themes.Soft(), css=responsive_css) as app:
             gr.Markdown("# MyFinGPT - Multi-Agent Financial Analysis System")
             gr.Markdown("Ask questions about stocks, compare companies, analyze trends, and get comprehensive financial insights.")
             
-            with gr.Row():
-                with gr.Column(scale=3):
+            # Horizontal split layout (50/50)
+            with gr.Row(elem_classes=["main-row"]):
+                # Left Column (50%) - Input and Progress
+                with gr.Column(scale=1, elem_classes=["left-column"]):
                     query_input = gr.Textbox(
                         label="Enter your financial query",
                         placeholder="e.g., Analyze Apple Inc. (AAPL) stock",
-                        lines=3
+                        lines=3,
+                        height=100,  # Fallback height
+                        elem_classes=["query-input"]
                     )
-                    
-                    with gr.Row():
-                        submit_btn = gr.Button("Submit Query", variant="primary")
-                        clear_btn = gr.Button("Clear")
                     
                     example_queries = gr.Dropdown(
                         label="Example Queries",
                         choices=EXAMPLE_QUERIES,
                         value=None
                     )
-                
-                with gr.Column(scale=1):
-                    gr.Markdown("### Quick Tips")
-                    gr.Markdown("""
-                    - Use stock symbols (e.g., AAPL, MSFT)
-                    - Ask for comparisons (e.g., "Compare AAPL and MSFT")
-                    - Request trend analysis
-                    - Ask for sentiment analysis
-                    """)
-            
-            # Progress Panel
-            with gr.Row():
-                with gr.Column():
+                    
+                    with gr.Row():
+                        submit_btn = gr.Button("Submit Query", variant="primary")
+                        clear_btn = gr.Button("Clear")
+                    
+                    # Execution Progress Panel
                     gr.Markdown("### Execution Progress")
                     progress_status = gr.Markdown(
                         value="**Current Agent:** Waiting for query...",
-                        label="Current Status"
+                        label="Current Status",
+                        height=50,  # Fallback height
+                        elem_classes=["progress-status"]
                     )
                     progress_tasks = gr.Markdown(
                         value="**Active Tasks:** None",
-                        label="Active Tasks"
+                        label="Active Tasks",
+                        height=50,  # Fallback height
+                        elem_classes=["progress-tasks"]
                     )
+                    
+                    # Execution Timeline Panel
+                    gr.Markdown("### Execution Timeline")
+                    progress_timeline = gr.Plot(
+                        label="Execution Timeline",
+                        height=200,  # Fallback height
+                        elem_classes=["progress-timeline"]
+                    )
+                    
+                    # Progress Events Panel (scrollable)
+                    gr.Markdown("### Progress Events")
                     progress_events = gr.Markdown(
                         value="**Progress Events:**\n\nWaiting for execution...",
-                        label="Progress Log"
+                        label="Progress Events",
+                        height=200,  # Fallback height
+                        elem_classes=["progress-events"]
                     )
-                    progress_timeline = gr.Plot(
-                        label="Execution Timeline"
-                    )
-            
-            with gr.Tabs():
-                with gr.Tab("Analysis & Report"):
-                    report_output = gr.Markdown(
-                        value="# Analysis & Report\n\nEnter a query above to get started.",
-                        label="Report"
-                    )
-                
-                with gr.Tab("Trends & Visualizations"):
-                    visualization_output = gr.Plot(
-                        label="Charts and Visualizations"
+                    
+                    # Progress Events Log Panel (scrollable)
+                    gr.Markdown("### Progress Events Log")
+                    progress_events_log = gr.Markdown(
+                        value="**Progress Events Log:**\n\nWaiting for execution...",
+                        label="Progress Events Log",
+                        height=200,  # Fallback height
+                        elem_classes=["progress-events-log"]
                     )
                 
-                with gr.Tab("Agent Activity & Token Usage"):
-                    agent_activity_output = gr.JSON(
-                        label="Agent Execution Metrics",
-                        value={}
-                    )
+                # Right Column (50%) - Result Tabs
+                with gr.Column(scale=1, elem_classes=["right-column"]):
+                    with gr.Tabs(elem_classes=["result-tabs"]):
+                        with gr.Tab("Analysis & Report"):
+                            report_output = gr.Markdown(
+                                value="# Analysis & Report\n\nEnter a query above to get started.",
+                                label="Report",
+                                height=600,  # Fallback height
+                                elem_classes=["tab-content"]
+                            )
+                        
+                        with gr.Tab("Visualizations"):
+                            visualization_output = gr.Plot(
+                                label="Charts and Visualizations",
+                                height=600,  # Fallback height
+                                elem_classes=["tab-content"]
+                            )
+                        
+                        with gr.Tab("Agent Activity"):
+                            agent_activity_output = gr.JSON(
+                                label="Agent Execution Metrics",
+                                value={},
+                                height=600,  # Fallback height
+                                elem_classes=["tab-content"]
+                            )
             
             # Event handlers
             submit_btn.click(
                 fn=self.process_query,
                 inputs=[query_input],
                 outputs=[report_output, visualization_output, agent_activity_output,
-                        progress_status, progress_tasks, progress_events, progress_timeline]
+                        progress_status, progress_tasks, progress_events, progress_events_log, progress_timeline]
             )
             
             clear_btn.click(
@@ -318,9 +435,10 @@ class MyFinGPTUI:
                            "**Current Agent:** Waiting for query...",
                            "**Active Tasks:** None",
                            "**Progress Events:**\n\nWaiting for execution...",
+                           "**Progress Events Log:**\n\nWaiting for execution...",
                            None),
                 outputs=[query_input, visualization_output, agent_activity_output,
-                        progress_status, progress_tasks, progress_events, progress_timeline]
+                        progress_status, progress_tasks, progress_events, progress_events_log, progress_timeline]
             )
             
             example_queries.change(

@@ -37,24 +37,42 @@ Each script tests a specific integration and can be run independently. All scrip
    - Tests: client initialization, collection creation, document operations
    - Uses: `CHROMA_DB_PATH` environment variable (default: `./chroma_db`)
 
+### Utility Scripts
+
+5. **cleanup_chroma_db.py** - Cleans up all ChromaDB data stored by the application
+   - No API key required
+   - Deletes all collections and documents from ChromaDB
+   - Options:
+     - Default: Clears all collections (keeps directory)
+     - `--delete-dir`: Also deletes the entire database directory
+   - Usage:
+     ```bash
+     # Clear all collections (keeps directory)
+     python scripts/cleanup_chroma_db.py
+     
+     # Clear collections and delete directory
+     python scripts/cleanup_chroma_db.py --delete-dir
+     ```
+   - **Warning**: This will permanently delete all stored data. Use with caution.
+
 ### LLM Provider Tests (via LiteLLM)
 
-5. **test_litellm_openai.py** - Tests OpenAI connectivity via LiteLLM
+6. **test_litellm_openai.py** - Tests OpenAI connectivity via LiteLLM
    - Requires: `OPENAI_API_KEY` environment variable
    - Tests: chat completion and embeddings
    - Get API key: https://platform.openai.com/api-keys
 
-6. **test_litellm_gemini.py** - Tests Google Gemini connectivity via LiteLLM
+7. **test_litellm_gemini.py** - Tests Google Gemini connectivity via LiteLLM
    - Requires: `GEMINI_API_KEY` environment variable
    - Tests: chat completion
    - Get API key: https://makersuite.google.com/app/apikey
 
-7. **test_litellm_anthropic.py** - Tests Anthropic Claude connectivity via LiteLLM
+8. **test_litellm_anthropic.py** - Tests Anthropic Claude connectivity via LiteLLM
    - Requires: `ANTHROPIC_API_KEY` environment variable
    - Tests: chat completion
    - Get API key: https://console.anthropic.com/
 
-8. **test_litellm_ollama.py** - Tests Ollama (local LLM) connectivity via LiteLLM
+9. **test_litellm_ollama.py** - Tests Ollama (local LLM) connectivity via LiteLLM
    - Requires: Ollama running locally
    - Uses: `OLLAMA_API_BASE` environment variable (default: `http://localhost:11434`)
    - Tests: server availability and chat completion
@@ -62,7 +80,7 @@ Each script tests a specific integration and can be run independently. All scrip
 
 ### Library Tests
 
-9. **test_langgraph.py** - Tests LangGraph library import and basic functionality
+10. **test_langgraph.py** - Tests LangGraph library import and basic functionality
    - No API key required
    - Tests: library import, StateGraph creation, graph execution
 
@@ -271,9 +289,10 @@ These scripts can be integrated into CI/CD pipelines:
 
 ## Notes
 
-- All scripts are designed to be non-destructive (test data is cleaned up)
+- All test scripts are designed to be non-destructive (test data is cleaned up)
 - Scripts use test symbols/data (e.g., AAPL) that should be safe to use
 - Some tests may require paid API keys (OpenAI, Anthropic)
 - Free tier APIs have rate limits that may cause intermittent failures
 - Ollama tests require local installation and running service
+- **Utility scripts** (like `cleanup_chroma_db.py`) are destructive and will permanently delete data - use with caution
 

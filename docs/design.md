@@ -587,36 +587,89 @@ Both threads complete independently and in parallel ✓
 
 ## 6. UI Design
 
-### 6.1 Gradio Component Structure
+### 6.1 UI Layout Structure
 
 **File**: `src/ui/gradio_app.py`
 
-**MyFinGPTUI Class**:
-- Creates Gradio interface
-- Handles query processing
-- Updates UI components
+**Layout**: Horizontal split-screen (50/50) for single-screen visibility
 
-**Components**:
-- Query input textbox
+```
+┌─────────────────────────────────────────────────────────────┐
+│  MyFinGPT - Multi-Agent Financial Analysis System          │
+├──────────────────────────┬──────────────────────────────────┤
+│   LEFT HALF (50%)        │   RIGHT HALF (50%)               │
+│                          │                                  │
+│  Query Input (8vh, min 80px) │  ┌──────────────────────────┐   │
+│  Example Queries            │  │ [Analysis] [Viz] [Activity]│   │
+│  [Submit] [Clear]           │  └──────────────────────────┘   │
+│                              │  │                              │
+│  Execution Progress         │  │  Tab Content (calc(100vh-250px),│
+│  - Current Agent (4vh, min 40px) │  │   min 400px, scrollable)  │
+│  - Active Tasks (4vh, min 40px) │  │                              │
+│                              │  │                              │
+│  Execution Timeline         │  │                              │
+│  (15vh, min 150px)         │  │                              │
+│                              │  │                              │
+│  Progress Events            │  │                              │
+│  (15vh, min 150px, scrollable) │  │                              │
+│                              │  │                              │
+│  Progress Events Log        │  │                              │
+│  (15vh, min 150px, scrollable) │  └──────────────────────────┘   │
+│                          │                                  │
+└──────────────────────────┴──────────────────────────────────┘
+```
+
+### 6.2 Gradio Component Structure
+
+**MyFinGPTUI Class**:
+- Creates Gradio interface with horizontal split layout
+- Handles query processing with streaming updates
+- Updates UI components in real-time
+
+**Left Column Components**:
+- Query input textbox (8vh height, min 80px, responsive)
 - Example queries dropdown
 - Submit/Clear buttons
-- Three tabs for results
+- Execution Progress panel (Current Agent + Active Tasks)
+  - Current Agent Status (4vh height, min 40px, responsive)
+  - Active Tasks (4vh height, min 40px, responsive)
+- Execution Timeline panel (Plotly chart, 15vh height, min 150px, responsive)
+- Progress Events panel (scrollable, 15vh height, min 150px, responsive, recent events)
+- Progress Events Log panel (scrollable, 15vh height, min 150px, responsive, all events)
 
-### 6.2 State Management in UI
+**Right Column Components**:
+- Tabs container with three tabs:
+  - **Analysis & Report** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
+  - **Visualizations** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
+  - **Agent Activity** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
+
+**Responsive Design Implementation**:
+- Custom CSS applied via `gr.Blocks(css=responsive_css)` parameter
+- Uses viewport height (vh) units for responsive sizing
+- Minimum heights ensure usability on small screens
+- Flexbox layout for proportional space distribution
+- Components use `elem_classes` for CSS targeting
+- Fallback pixel heights maintained in Gradio `height` parameters
+
+### 6.3 State Management in UI
 
 **Query Processing Flow**:
-1. User enters query
-2. UI calls `workflow.process_query()`
-3. Workflow executes agents
-4. Results returned to UI
-5. UI updates all tabs
+1. User enters query in left column
+2. UI calls `workflow.process_query()` with streaming
+3. Workflow executes agents and streams progress updates
+4. UI updates progress panels in real-time (left column)
+5. Results returned to UI
+6. UI updates result tabs (right column)
 
 **Real-time Updates**:
-- Progress bar during execution
-- Streaming updates (future enhancement)
-- Error messages displayed
+- Progress panels update in real-time via streaming
+- Current agent status and active tasks displayed
+- Progress events log updated as events occur
+- Execution timeline chart updated dynamically
+- Result tabs updated when processing completes
+- Error messages displayed in appropriate panels
 
-### 6.3 Visualization Component Design
+### 6.4 Visualization Component Design
 
 **File**: `src/ui/components.py`
 
@@ -624,30 +677,39 @@ Both threads complete independently and in parallel ✓
 - Price trend charts (Plotly line charts)
 - Comparison charts (Plotly bar charts)
 - Sentiment charts (Plotly bar charts with colors)
+- Execution timeline charts (Plotly Gantt-style charts)
 
 **Data Preparation**:
 - Visualizations prepared in Reporting Agent
+- Execution timeline created in progress display module
 - Data formatted for Plotly
 - Charts created in UI components
 
-### 6.4 Real-time Update Mechanism
+**Display**:
+- Visualizations displayed in "Visualizations" tab (right column, scrollable)
+- Execution timeline displayed in left column progress section
+- All charts are scrollable with fixed heights
+
+### 6.5 Real-time Update Mechanism
 
 **Current**: Streaming progress updates with real-time display
 
 **Progress Tracking Features**:
-- Real-time agent execution status
-- Task-level progress updates
-- Execution timeline visualization
-- Progress events log
-- Current agent and active tasks display
+- Real-time agent execution status (left column)
+- Task-level progress updates (left column)
+- Execution timeline visualization (left column, ~200px)
+- Progress events panel (left column, ~200px, scrollable, recent events)
+- Progress events log panel (left column, ~200px, scrollable, all events)
+- Current agent and active tasks display (left column)
 
 **Streaming Implementation**:
 - Workflow streams state updates including progress events
-- UI updates progress display in real-time
+- UI updates progress display panels in real-time (left column)
 - Progress events stored in AgentState for persistence
 - Execution order tracked with timing information
+- Two separate event displays: recent events (Progress Events) and full log (Progress Events Log)
 
-### 6.5 Progress Tracking Design
+### 6.6 Progress Tracking Design
 
 **File**: `src/utils/progress_tracker.py`
 
@@ -662,30 +724,34 @@ Both threads complete independently and in parallel ✓
 {
     "timestamp": str,  # ISO timestamp
     "agent": str,  # Agent name
-    "event_type": str,  # "agent_start", "agent_complete", "task_start", "task_complete", "task_progress"
+    "event_type": str,  # "agent_start", "agent_complete", "task_start", "task_complete", "task_progress", "api_call_start", "api_call_success", "api_call_failed", "api_call_skipped"
     "message": str,  # Human-readable message
     "task_name": Optional[str],  # Task name (for task-level events)
     "symbol": Optional[str],  # Symbol being processed (if applicable)
-    "status": str,  # "running", "completed", "failed"
+    "status": str,  # "running", "completed", "failed", "success", "skipped"
     "execution_order": int,  # Order in execution sequence
     "is_parallel": bool,  # Whether this is parallel execution
-    "transaction_id": Optional[str]  # Transaction ID
+    "transaction_id": Optional[str],  # Transaction ID
+    "integration": Optional[str],  # Integration name (for API call events)
+    "error": Optional[str]  # Error message (for failed events)
 }
 ```
 
 **Progress Display Components**:
 - **File**: `src/ui/progress_display.py`
-- `create_progress_panel()`: Main progress display panel
-- `format_progress_event(event)`: Format individual progress events
-- `create_execution_timeline(execution_order)`: Visual timeline of execution
+- `format_progress_event(event)`: Format individual progress events with status indicators
+- `format_progress_events_markdown(progress_events, max_events=20)`: Format recent events for Progress Events panel
+- `format_progress_events_log_markdown(progress_events)`: Format all events for Progress Events Log panel
+- `create_execution_timeline(execution_order)`: Visual timeline of execution (Plotly Gantt chart)
 - `create_agent_status_display(current_agent, current_tasks)`: Current agent status
-- `update_progress_display(...)`: Update all progress display components
+- `update_progress_display(...)`: Update all progress display components (returns both events and events_log)
 
 **UI Integration**:
-- Progress panel displayed above tabs
+- Progress panels displayed in left column
 - Real-time updates via streaming
-- Execution timeline chart
-- Progress events log
+- Execution timeline chart (15vh height, min 150px, responsive)
+- Progress Events panel (15vh height, min 150px, responsive, scrollable, shows recent 20 events)
+- Progress Events Log panel (15vh height, min 150px, responsive, scrollable, shows all events)
 
 ## 7. Data Models
 
