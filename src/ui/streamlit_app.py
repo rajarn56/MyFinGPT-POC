@@ -319,7 +319,37 @@ class MyFinGPTStreamlitUI:
             }
             
             .stSelectbox select {
-                background-color: #262730;
+                background-color: #262730 !important;
+                color: #ffffff !important;
+                border: 1px solid #4a4a4a !important;
+            }
+            
+            .stSelectbox [data-baseweb="select"] {
+                background-color: #262730 !important;
+                color: #ffffff !important;
+            }
+            
+            .stSelectbox [data-baseweb="select"] > div {
+                background-color: #262730 !important;
+                color: #ffffff !important;
+            }
+            
+            /* Selectbox dropdown options */
+            [data-baseweb="popover"] {
+                background-color: #262730 !important;
+            }
+            
+            [data-baseweb="menu"] {
+                background-color: #262730 !important;
+            }
+            
+            [data-baseweb="option"] {
+                background-color: #262730 !important;
+                color: #ffffff !important;
+            }
+            
+            [data-baseweb="option"]:hover {
+                background-color: #3a3a4a !important;
                 color: #ffffff !important;
             }
             
@@ -395,10 +425,39 @@ class MyFinGPTStreamlitUI:
                 color: #ffffff !important;
             }
             
-            /* JSON display */
+            /* JSON display - Agent Activity */
             .stJson {
-                background-color: #1a1a1a;
+                background-color: #1a1a1a !important;
                 color: #ffffff !important;
+            }
+            
+            .stJson pre {
+                background-color: #1a1a1a !important;
+                color: #ffffff !important;
+            }
+            
+            .stJson code {
+                background-color: #1a1a1a !important;
+                color: #ffffff !important;
+            }
+            
+            /* JSON viewer specific styling */
+            [data-testid="stJson"] {
+                background-color: #1a1a1a !important;
+            }
+            
+            [data-testid="stJson"] pre {
+                background-color: #1a1a1a !important;
+                color: #ffffff !important;
+            }
+            
+            /* Ensure JSON text is visible */
+            .jsonschema-table,
+            .jsonschema-table td,
+            .jsonschema-table th {
+                background-color: #1a1a1a !important;
+                color: #ffffff !important;
+                border-color: #333333 !important;
             }
             
             /* General text elements */
