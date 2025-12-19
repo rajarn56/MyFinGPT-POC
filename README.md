@@ -23,7 +23,7 @@ MyFinGPT is a proof-of-concept multi-agent financial analysis system that demons
 - **Vector Database**: Chroma for semantic search and historical pattern matching
 - **Grounded Responses**: All responses include citations and source references
 - **Token Tracking**: Track token usage per agent and per call
-- **Interactive UI**: Gradio-based web interface with visualizations
+- **Interactive UI**: Gradio or Streamlit web interface with visualizations (selectable via `--ui-mode`)
 - **Comprehensive Guardrails**: Input validation, domain enforcement, security checks, and output validation to ensure system stays within intended scope
 
 ## Prerequisites
@@ -403,41 +403,76 @@ If you want to use LiteLLM proxy for advanced features:
 litellm --config config/llm_templates.yaml
 ```
 
-### Starting Gradio UI Application
+### Starting UI Application
+
+MyFinGPT supports two UI frameworks: **Gradio** (default) and **Streamlit**. Select the UI mode using the `--ui-mode` parameter.
+
+#### Gradio UI (Default)
 
 **Basic startup**:
 ```bash
+python main.py --ui-mode gradio
+# Or simply (Gradio is default):
 python main.py
 ```
 
 **With options**:
 ```bash
-python main.py --llm-provider openai --port 7860 --host 0.0.0.0
+python main.py --ui-mode gradio --llm-provider openai --port 7860 --host 0.0.0.0
 ```
 
+**With public sharing** (Gradio only):
+```bash
+python main.py --ui-mode gradio --share
+```
+
+**Access the Gradio UI**:
+- Local: http://localhost:7860
+- Network: http://<your-ip>:7860
+
+#### Streamlit UI
+
+**Basic startup**:
+```bash
+python main.py --ui-mode streamlit
+```
+
+**With options**:
+```bash
+python main.py --ui-mode streamlit --llm-provider openai --port 8501 --host 0.0.0.0
+```
+
+**Access the Streamlit UI**:
+- Local: http://localhost:8501
+- Network: http://<your-ip>:8501
+
 **Command-Line Options**:
+- `--ui-mode`: UI framework to use (gradio or streamlit, default: gradio)
 - `--llm-provider`: LLM provider (openai, gemini, ollama, anthropic, lmstudio)
 - `--enable-integrations`: Comma-separated list of integrations to enable (yahoo_finance, alpha_vantage, fmp)
 - `--disable-integrations`: Comma-separated list of integrations to disable
-- `--port`: Server port (default: 7860)
+- `--port`: Server port (default: 7860 for Gradio, 8501 for Streamlit)
 - `--host`: Server host (default: 0.0.0.0)
-- `--share`: Create public Gradio link
+- `--share`: Create public Gradio link (Gradio only)
 
 **Examples**:
 ```bash
-# Use LM Studio with only Yahoo Finance enabled
-python main.py --llm-provider lmstudio --enable-integrations yahoo_finance --disable-integrations fmp,alpha_vantage
+# Use Gradio with LM Studio and only Yahoo Finance enabled
+python main.py --ui-mode gradio --llm-provider lmstudio --enable-integrations yahoo_finance --disable-integrations fmp,alpha_vantage
 
-# Use OpenAI, disable FMP
-python main.py --llm-provider openai --disable-integrations fmp
+# Use Streamlit with OpenAI, disable FMP
+python main.py --ui-mode streamlit --llm-provider openai --disable-integrations fmp
 
-# Use default provider, custom port
-python main.py --port 8080
+# Use Gradio with default provider, custom port
+python main.py --ui-mode gradio --port 8080
+
+# Use Streamlit with custom port
+python main.py --ui-mode streamlit --port 8502
 ```
 
-**Access the UI**:
-- Local: http://localhost:7860
-- Network: http://<your-ip>:7860
+**UI Mode Comparison**:
+- **Gradio**: Better for rapid prototyping, built-in sharing features, simpler deployment
+- **Streamlit**: Better for production apps, more customizable, elegant dark theme, better two-column layout
 
 ### Starting All Components Together
 
@@ -610,12 +645,20 @@ source .venv/bin/activate  # On macOS/Linux
 .venv\Scripts\activate  # On Windows
 ```
 
-1. **Start the application**:
+1. **Start the application** (choose UI mode):
 ```bash
+# Use Gradio (default)
+python main.py --ui-mode gradio
+# Or simply:
 python main.py
+
+# Use Streamlit
+python main.py --ui-mode streamlit
 ```
 
-2. **Open browser** to http://localhost:7860
+2. **Open browser**:
+   - Gradio: http://localhost:7860
+   - Streamlit: http://localhost:8501
 
 3. **Enter a query** in the text box, for example:
    - "Analyze Apple Inc. (AAPL) stock"
@@ -679,21 +722,43 @@ Analyze how recent news and market sentiment have affected NVIDIA (NVDA) stock p
 
 ### UI Layout
 
-The UI uses a horizontal split-screen layout (50/50) for single-screen visibility:
+MyFinGPT supports two UI frameworks with similar layouts:
+
+#### Gradio UI Layout
+
+The Gradio UI uses a horizontal split-screen layout (50/50) with responsive viewport-based heights:
 
 **Left Column (50%)**:
-- **Query Input**: Enter your financial query (~100px height)
+- **Query Input**: Enter your financial query (8vh height, min 80px, responsive)
 - **Example Queries Dropdown**: Select from pre-defined examples
 - **Submit/Clear Buttons**: Process your query or clear inputs
-- **Execution Progress**: Current agent status and active tasks (~100px total)
-- **Execution Timeline**: Visual timeline chart (~200px height)
-- **Progress Events**: Recent progress events (~200px height, scrollable)
-- **Progress Events Log**: Complete progress log (~200px height, scrollable)
+- **Execution Progress**: Current agent status and active tasks (4vh each, min 40px, responsive)
+- **Execution Timeline**: Visual timeline chart (15vh height, min 150px, responsive)
+- **Progress Events**: Recent progress events (15vh height, min 150px, scrollable)
+- **Progress Events Log**: Complete progress log (15vh height, min 150px, scrollable)
+
+**Right Column (50%)**:
+- **Tabs**: Switch between Analysis & Report, Visualizations, and Agent Activity
+- All tab content is scrollable with calc(100vh - 250px) height, min 400px, responsive
+- All tabs visible and clickable simultaneously
+
+#### Streamlit UI Layout
+
+The Streamlit UI uses a two-column layout (50/50) with elegant dark theme:
+
+**Left Column (50%)**:
+- **Query Input**: Enter your financial query (100px height)
+- **Example Queries Selectbox**: Select from pre-defined examples
+- **Submit/Clear Buttons**: Process your query or clear inputs
+- **Execution Progress**: Current agent status and active tasks (markdown containers)
+- **Execution Timeline**: Visual timeline chart (Plotly, scrollable)
+- **Progress Events**: Recent progress events (scrollable container, ~200px)
+- **Progress Events Log**: Complete progress log (scrollable container, ~200px)
 
 **Right Column (50%)**:
 - **Tabs**: Switch between Analysis & Report, Visualizations, and Agent Activity
 - All tab content is scrollable with ~600px height
-- All tabs visible and clickable simultaneously
+- Dark theme with custom styling for better visual appeal
 
 ### UI Navigation
 

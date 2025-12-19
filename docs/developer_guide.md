@@ -16,7 +16,7 @@ This guide provides detailed instructions for developers working on MyFinGPT, in
 
 MyFinGPT consists of several key components that work together:
 
-1. **Gradio UI** - Web interface for user interactions with real-time progress tracking
+1. **UI Layer** - Web interface (Gradio or Streamlit) for user interactions with real-time progress tracking
 2. **Workflow Orchestrator** - LangGraph-based workflow management with streaming support
 3. **Agents** - Research, Analyst, and Reporting agents with progress reporting
 4. **MCP Clients** - Yahoo Finance, Alpha Vantage, FMP API clients
@@ -28,7 +28,8 @@ MyFinGPT consists of several key components that work together:
 
 ```
 ┌─────────────────┐
-│   Gradio UI     │
+│   UI Layer      │
+│ (Gradio/Streamlit)│
 └────────┬────────┘
          │
 ┌────────▼────────┐
@@ -95,24 +96,59 @@ python -c "import gradio; import langgraph; import chromadb; print('All dependen
 
 ## Individual Component Management
 
-### 1. Gradio UI Component
+### 1. UI Layer Component (Gradio or Streamlit)
+
+#### UI Mode Selection
+
+MyFinGPT supports two UI frameworks:
+- **Gradio** (default): Traditional Gradio interface with horizontal split layout
+- **Streamlit**: Modern Streamlit interface with two-column layout and elegant dark theme
+
+**Selecting UI Mode:**
+```bash
+# Use Gradio (default)
+python main.py --ui-mode gradio
+
+# Use Streamlit
+python main.py --ui-mode streamlit
+
+# Default is Gradio if --ui-mode is not specified
+python main.py  # Uses Gradio
+```
+
+**When to Use Each UI:**
+- **Gradio**: Better for rapid prototyping, built-in sharing features, simpler deployment
+- **Streamlit**: Better for production apps, more customizable, elegant dark theme, better two-column layout
 
 #### Setup
 The UI component is automatically initialized when you run `main.py`. No separate setup needed.
 
 #### Start
+
+**Gradio UI:**
 ```bash
-# Basic startup
-python main.py
+# Basic startup (Gradio)
+python main.py --ui-mode gradio
 
 # With custom options
-python main.py --provider openai --port 7860 --host 0.0.0.0
+python main.py --ui-mode gradio --provider openai --port 7860 --host 0.0.0.0
 
-# With public sharing
-python main.py --share
+# With public sharing (Gradio only)
+python main.py --ui-mode gradio --share
+```
+
+**Streamlit UI:**
+```bash
+# Basic startup (Streamlit)
+python main.py --ui-mode streamlit
+
+# With custom options
+python main.py --ui-mode streamlit --provider openai --port 8501 --host 0.0.0.0
 ```
 
 **What to expect:**
+
+**Gradio:**
 - Server starts on http://localhost:7860 (or specified port)
 - Logs show: `[UI] Launching Gradio app | Host: 0.0.0.0 | Port: 7860`
 - Browser opens automatically (or navigate manually)
@@ -121,10 +157,27 @@ python main.py --share
   - Right column: Three result tabs (Analysis & Report, Visualizations, Agent Activity) with responsive heights
   - All components adapt to screen size while maintaining minimum heights for usability
 
+**Streamlit:**
+- Server starts on http://localhost:8501 (or specified port)
+- Logs show: `[Streamlit] Starting Streamlit server...`
+- Browser opens automatically (or navigate manually)
+- UI shows two-column layout with elegant dark theme:
+  - Left column: Query input, controls, and progress panels (scrollable containers)
+  - Right column: Three result tabs (Analysis & Report, Visualizations, Agent Activity) with scrollable content
+  - Dark theme with custom styling for better visual appeal
+
 **Logs to look for:**
+
+**Gradio:**
 ```
 [UI] Launching Gradio app | Host: 0.0.0.0 | Port: 7860
 [UI] Gradio app launching at http://0.0.0.0:7860
+```
+
+**Streamlit:**
+```
+[Streamlit] Starting Streamlit server...
+[Streamlit] Command: streamlit run ...
 ```
 
 #### Stop
@@ -133,7 +186,12 @@ python main.py --share
 Ctrl+C
 
 # Or find and kill process
+# For Gradio:
 lsof -i :7860  # Find process
+kill <PID>     # Kill process
+
+# For Streamlit:
+lsof -i :8501  # Find process
 kill <PID>     # Kill process
 ```
 
@@ -146,17 +204,19 @@ kill <PID>     # Kill process
 ```bash
 # Stop current instance (Ctrl+C)
 # Start again
-python main.py
+python main.py --ui-mode <gradio|streamlit>
 ```
 
 #### Test/Debug
+
+**Gradio:**
 ```bash
-# Test UI component directly
+# Test Gradio UI component directly
 python -c "
 from src.ui.gradio_app import MyFinGPTUI
 ui = MyFinGPTUI()
 ui.create_interface()
-print('UI interface created successfully')
+print('Gradio UI interface created successfully')
 "
 
 # Test with a simple query
@@ -168,10 +228,26 @@ print('Query processed:', result[0][:100])
 "
 ```
 
+**Streamlit:**
+```bash
+# Test Streamlit UI component directly
+python -c "
+from src.ui.streamlit_app import MyFinGPTStreamlitUI
+ui = MyFinGPTStreamlitUI()
+ui.create_interface()
+print('Streamlit UI interface created successfully')
+"
+
+# Run Streamlit directly
+streamlit run src/ui/streamlit_app.py --server.port 8501
+```
+
 **Debugging tips:**
-- Check logs for `[UI]` prefixed messages
-- Verify port is not in use: `lsof -i :7860`
+- Check logs for `[UI]` prefixed messages (Gradio) or `[Streamlit]` messages
+- Verify port is not in use: `lsof -i :<port>`
 - Test with verbose logging: `export LOG_LEVEL=DEBUG`
+- For Streamlit: Check browser console for errors
+- For Gradio: Check Gradio's built-in error display
 
 ---
 

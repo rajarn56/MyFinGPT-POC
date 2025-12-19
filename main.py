@@ -20,7 +20,6 @@ log_dir = os.getenv("LOG_DIR", "./logs")
 log_level = os.getenv("LOG_LEVEL", "INFO")
 logging_config = setup_logging(log_dir=log_dir, log_level=log_level)
 
-from src.ui.gradio_app import main
 from src.utils.llm_config import llm_config
 from src.utils.integration_config import integration_config
 
@@ -79,25 +78,34 @@ Examples:
              "Overrides config file settings."
     )
     
+    # UI mode selection
+    parser.add_argument(
+        "--ui-mode",
+        type=str,
+        choices=["gradio", "streamlit"],
+        default="gradio",
+        help="UI framework to use (default: gradio)"
+    )
+    
     # Server configuration
     parser.add_argument(
         "--host",
         type=str,
         default=None,
-        help="Host to bind the Gradio server to (default: 0.0.0.0)"
+        help="Host to bind the server to (default: 0.0.0.0 for Gradio, 0.0.0.0 for Streamlit)"
     )
     
     parser.add_argument(
         "--port",
         type=int,
         default=None,
-        help="Port to bind the Gradio server to (default: 7860)"
+        help="Port to bind the server to (default: 7860 for Gradio, 8501 for Streamlit)"
     )
     
     parser.add_argument(
         "--share",
         action="store_true",
-        help="Create a public Gradio share link"
+        help="Create a public Gradio share link (Gradio only)"
     )
     
     return parser.parse_args()
@@ -141,37 +149,76 @@ def apply_cli_configuration(args):
 
 
 if __name__ == "__main__":
+    import sys
+    import subprocess
+    
     # Parse command-line arguments
     args = parse_arguments()
     
     # Apply CLI configuration
     apply_cli_configuration(args)
     
-    # Prepare arguments for Gradio app
-    # Note: gradio_app.main() has its own argparse, so we set environment variables
-    # and let it parse its own arguments, or we can modify sys.argv
-    import sys
+    # Launch appropriate UI based on ui_mode
+    if args.ui_mode == "streamlit":
+        # Launch Streamlit UI
+        print(f"[Config] Launching Streamlit UI")
+        
+        # Get Streamlit app path
+        streamlit_app_path = os.path.join(os.path.dirname(__file__), "src", "ui", "streamlit_app.py")
+        
+        # Build streamlit run command
+        streamlit_cmd = ["streamlit", "run", streamlit_app_path]
+        
+        # Add port if specified
+        if args.port:
+            streamlit_cmd.extend(["--server.port", str(args.port)])
+        else:
+            streamlit_cmd.extend(["--server.port", "8501"])
+        
+        # Add host if specified
+        if args.host:
+            streamlit_cmd.extend(["--server.address", args.host])
+        else:
+            streamlit_cmd.extend(["--server.address", "0.0.0.0"])
+        
+        # Set server headless mode
+        streamlit_cmd.extend(["--server.headless", "true"])
+        
+        # Run streamlit
+        print(f"[Streamlit] Starting Streamlit server...")
+        print(f"[Streamlit] Command: {' '.join(streamlit_cmd)}")
+        subprocess.run(streamlit_cmd)
     
-    # Build sys.argv for gradio_app's argparse
-    gradio_argv = [sys.argv[0]]  # Script name
-    
-    if args.llm_provider:
-        gradio_argv.extend(["--provider", args.llm_provider])
-    if args.host:
-        gradio_argv.extend(["--host", args.host])
-    if args.port:
-        gradio_argv.extend(["--port", str(args.port)])
-    if args.share:
-        gradio_argv.append("--share")
-    
-    # Temporarily replace sys.argv for gradio_app's argparse
-    original_argv = sys.argv
-    sys.argv = gradio_argv
-    
-    try:
-        # Launch Gradio app (it will parse its own arguments)
-        main()
-    finally:
-        # Restore original sys.argv
-        sys.argv = original_argv
+    else:
+        # Launch Gradio UI (default)
+        print(f"[Config] Launching Gradio UI")
+        
+        from src.ui.gradio_app import main as gradio_main
+        
+        # Prepare arguments for Gradio app
+        # Note: gradio_app.main() has its own argparse, so we set environment variables
+        # and let it parse its own arguments, or we can modify sys.argv
+        
+        # Build sys.argv for gradio_app's argparse
+        gradio_argv = [sys.argv[0]]  # Script name
+        
+        if args.llm_provider:
+            gradio_argv.extend(["--provider", args.llm_provider])
+        if args.host:
+            gradio_argv.extend(["--host", args.host])
+        if args.port:
+            gradio_argv.extend(["--port", str(args.port)])
+        if args.share:
+            gradio_argv.append("--share")
+        
+        # Temporarily replace sys.argv for gradio_app's argparse
+        original_argv = sys.argv
+        sys.argv = gradio_argv
+        
+        try:
+            # Launch Gradio app (it will parse its own arguments)
+            gradio_main()
+        finally:
+            # Restore original sys.argv
+            sys.argv = original_argv
 

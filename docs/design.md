@@ -589,7 +589,19 @@ Both threads complete independently and in parallel ✓
 
 ## 6. UI Design
 
-### 6.1 UI Layout Structure
+### 6.1 UI Mode Selection
+
+MyFinGPT supports two UI frameworks:
+- **Gradio** (default): Traditional Gradio interface
+- **Streamlit**: Modern Streamlit interface with elegant dark theme
+
+Select UI mode via `--ui-mode` parameter:
+```bash
+python main.py --ui-mode gradio    # Use Gradio (default)
+python main.py --ui-mode streamlit # Use Streamlit
+```
+
+### 6.2 Gradio UI Layout Structure
 
 **File**: `src/ui/gradio_app.py`
 
@@ -621,7 +633,7 @@ Both threads complete independently and in parallel ✓
 └──────────────────────────┴──────────────────────────────────┘
 ```
 
-### 6.2 Gradio Component Structure
+### 6.3 Gradio Component Structure
 
 **MyFinGPTUI Class**:
 - Creates Gradio interface with horizontal split layout
@@ -645,13 +657,84 @@ Both threads complete independently and in parallel ✓
   - **Visualizations** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
   - **Agent Activity** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
 
-**Responsive Design Implementation**:
+**Gradio Responsive Design Implementation**:
 - Custom CSS applied via `gr.Blocks(css=responsive_css)` parameter
 - Uses viewport height (vh) units for responsive sizing
 - Minimum heights ensure usability on small screens
 - Flexbox layout for proportional space distribution
 - Components use `elem_classes` for CSS targeting
 - Fallback pixel heights maintained in Gradio `height` parameters
+
+### 6.4 Streamlit UI Layout Structure
+
+**File**: `src/ui/streamlit_app.py`
+
+**Layout**: Two-column layout (50/50) with elegant dark theme for single-screen visibility
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  MyFinGPT - Multi-Agent Financial Analysis System          │
+├──────────────────────────┬──────────────────────────────────┤
+│   LEFT COLUMN (50%)     │   RIGHT COLUMN (50%)             │
+│                          │                                  │
+│  Query Input (~100px)   │  ┌──────────────────────────┐   │
+│  Example Queries        │  │ [Analysis] [Viz] [Activity]│   │
+│  [Submit] [Clear]       │  └──────────────────────────┘   │
+│                          │  │                              │
+│  Execution Progress     │  │  Tab Content (scrollable,    │
+│  - Current Agent        │  │   ~600px)                    │
+│  - Active Tasks         │  │                              │
+│                          │  │                              │
+│  Execution Timeline     │  │                              │
+│  (Plotly chart)        │  │                              │
+│                          │  │                              │
+│  Progress Events        │  │                              │
+│  (scrollable, ~200px)  │  │                              │
+│                          │  │                              │
+│  Progress Events Log    │  │                              │
+│  (scrollable, ~200px)  │  └──────────────────────────┘   │
+│                          │                                  │
+└──────────────────────────┴──────────────────────────────────┘
+```
+
+### 6.5 Streamlit Component Structure
+
+**MyFinGPTStreamlitUI Class**:
+- Creates Streamlit interface with two-column layout
+- Handles query processing with streaming updates
+- Updates UI components in real-time using `st.empty()` containers
+- Implements elegant dark theme with custom CSS
+
+**Left Column Components**:
+- Query input textarea (100px height)
+- Example queries selectbox
+- Submit/Clear buttons
+- Execution Progress panel:
+  - Current Agent Status (markdown in container)
+  - Active Tasks (markdown in container)
+- Execution Timeline panel (Plotly chart, scrollable)
+- Progress Events panel (scrollable container, ~200px, recent events)
+- Progress Events Log panel (scrollable container, ~200px, all events)
+
+**Right Column Components**:
+- Tabs container with three tabs:
+  - **Analysis & Report** (scrollable container, ~600px)
+  - **Visualizations** (Plotly chart, full width)
+  - **Agent Activity** (JSON display, scrollable)
+
+**Streamlit Dark Theme Implementation**:
+- Page config: `st.set_page_config(theme="dark")` (Streamlit 1.28+)
+- Custom CSS via `st.markdown()` with `<style>` tag
+- Dark color scheme: `#0e1117` background, `#262730` containers
+- Scrollable containers with `max-height` and `overflow-y: auto`
+- Custom styling for buttons, inputs, and markdown containers
+- Session state management for query persistence
+
+**Streamlit Real-time Updates**:
+- Uses `st.empty()` containers for dynamic content
+- Updates containers in loop during `workflow.stream_query()` execution
+- Session state stores query results for persistence
+- Components update automatically on query submission
 
 ### 6.3 State Management in UI
 

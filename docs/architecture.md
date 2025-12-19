@@ -117,7 +117,11 @@ In-memory caching system (`ContextCache`) with:
 - **Vector DB**: Permanent, stores text documents with embeddings, semantic search
 - See `docs/developer_guide.md` for detailed explanation
 
-### 2.6 UI Layer (Gradio)
+### 2.6 UI Layer (Gradio or Streamlit)
+
+MyFinGPT supports two UI frameworks, selectable via `--ui-mode` parameter:
+
+#### Gradio UI (Default)
 
 Gradio-based web interface with horizontal split-screen layout (50/50) and responsive viewport-based heights:
 
@@ -138,13 +142,51 @@ Gradio-based web interface with horizontal split-screen layout (50/50) and respo
   - **Visualizations**: Interactive charts (Plotly)
   - **Agent Activity**: Execution metrics and token usage
 
-**Features**:
+**Gradio Features**:
 - Real-time progress updates with streaming
 - All content visible in single screen
 - Scrollable panels for long content
 - Interactive visualizations (Plotly)
 - Execution timeline visualization
 - **Responsive Design**: Uses custom CSS with viewport height (vh) units for adaptive sizing across different screen sizes
+- Public sharing support via `--share` flag
+
+#### Streamlit UI
+
+Streamlit-based web interface with two-column layout and elegant dark theme:
+
+**Left Column (50%)**:
+- Query input textarea (100px height)
+- Example queries selectbox
+- Submit/Clear buttons
+- Execution Progress panel:
+  - Current Agent Status (markdown container)
+  - Active Tasks (markdown container)
+- Execution Timeline panel (Plotly chart, scrollable)
+- Progress Events panel (scrollable container, ~200px, recent events)
+- Progress Events Log panel (scrollable container, ~200px, all events)
+
+**Right Column (50%)**:
+- Three tabs with scrollable content:
+  - **Analysis & Report**: Comprehensive report with citations (scrollable container, ~600px)
+  - **Visualizations**: Interactive charts (Plotly, full width)
+  - **Agent Activity**: Execution metrics and token usage (JSON display)
+
+**Streamlit Features**:
+- Real-time progress updates with streaming
+- Two-column layout optimized for single-screen viewing
+- Elegant dark theme with custom CSS styling
+- Scrollable containers for long content
+- Interactive visualizations (Plotly)
+- Execution timeline visualization
+- Session state management for query persistence
+- Better two-column layout implementation than Gradio
+
+**UI Mode Selection**:
+- Default: Gradio (`--ui-mode gradio` or omit flag)
+- Streamlit: `--ui-mode streamlit`
+- Both UIs use the same underlying workflow and agent components
+- Both support the same LLM providers and integrations
 
 ### 2.7 Progress Tracking System
 
