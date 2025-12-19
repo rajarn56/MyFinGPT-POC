@@ -256,7 +256,8 @@ class MyFinGPTUI:
             height: calc(100vh - 180px);
             min-height: 500px;
             display: flex;
-            overflow: hidden;
+            overflow: visible;
+            gap: 10px;
         }
         
         /* Columns - flexbox for space distribution */
@@ -268,6 +269,21 @@ class MyFinGPTUI:
             overflow-y: auto;
             overflow-x: hidden;
             flex: 1 1 50%;
+            min-width: 0;
+        }
+        
+        /* Left column - ensure proper sizing */
+        .left-column {
+            flex: 1 1 50%;
+            min-width: 300px;
+        }
+        
+        /* Ensure right column is visible and properly sized */
+        .right-column {
+            flex: 1 1 50%;
+            min-width: 300px;
+            display: flex !important;
+            visibility: visible !important;
         }
         
         /* Query input - responsive height (8vh with min 80px) */
@@ -307,18 +323,49 @@ class MyFinGPTUI:
             flex: 1 1 auto;
         }
         
-        /* Tab container - fill remaining space in right column */
+        /* Tab container - fill remaining space in right column using flexbox */
         .result-tabs {
-            height: 100%;
+            flex: 1 1 auto;
             min-height: 400px;
             display: flex;
             flex-direction: column;
+            height: 100%;
+            width: 100%;
         }
         
-        /* Tab content components - responsive heights */
+        /* Ensure Gradio tabs container fills space */
+        .result-tabs > div {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: 100%;
+        }
+        
+        /* Tab content components - fill available space in container */
         .tab-content {
-            height: calc(100vh - 250px) !important;
             min-height: 400px !important;
+            height: 100% !important;
+            max-height: 100% !important;
+            overflow-y: auto !important;
+            flex: 1 1 auto;
+        }
+        
+        /* Ensure tab panels are properly sized */
+        .result-tabs .tab-nav {
+            flex-shrink: 0;
+        }
+        
+        /* Target Gradio's tab panel wrapper - ensure it fills available space */
+        .result-tabs [class*="tab-content-wrapper"],
+        .result-tabs [class*="tab-panel"],
+        .result-tabs > div > div {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+            height: 100%;
         }
         
         /* Ensure scrollable content works */
@@ -326,6 +373,26 @@ class MyFinGPTUI:
         .gr-plot,
         .gr-json {
             overflow-y: auto;
+        }
+        
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 1200px) {
+            .main-row {
+                flex-direction: column;
+            }
+            
+            .left-column,
+            .right-column {
+                max-width: 100%;
+                width: 100%;
+                flex: 1 1 100%;
+            }
+        }
+        
+        /* Ensure proper spacing between columns */
+        .main-row .left-column,
+        .main-row .right-column {
+            padding: 0 5px;
         }
         """
         
@@ -397,12 +464,14 @@ class MyFinGPTUI:
                             report_output = gr.Markdown(
                                 value="# Analysis & Report\n\nEnter a query above to get started.",
                                 label="Report",
+                                height=600,
                                 elem_classes=["tab-content"]
                             )
                         
                         with gr.Tab("Visualizations"):
                             visualization_output = gr.Plot(
                                 label="Charts and Visualizations",
+                                height=600,
                                 elem_classes=["tab-content"]
                             )
                         
@@ -410,6 +479,7 @@ class MyFinGPTUI:
                             agent_activity_output = gr.JSON(
                                 label="Agent Execution Metrics",
                                 value={},
+                                height=600,
                                 elem_classes=["tab-content"]
                             )
             
@@ -481,4 +551,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
