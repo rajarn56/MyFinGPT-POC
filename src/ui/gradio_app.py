@@ -341,7 +341,6 @@ class MyFinGPTUI:
                         label="Enter your financial query",
                         placeholder="e.g., Analyze Apple Inc. (AAPL) stock",
                         lines=3,
-                        height=100,  # Fallback height
                         elem_classes=["query-input"]
                     )
                     
@@ -360,13 +359,11 @@ class MyFinGPTUI:
                     progress_status = gr.Markdown(
                         value="**Current Agent:** Waiting for query...",
                         label="Current Status",
-                        height=50,  # Fallback height
                         elem_classes=["progress-status"]
                     )
                     progress_tasks = gr.Markdown(
                         value="**Active Tasks:** None",
                         label="Active Tasks",
-                        height=50,  # Fallback height
                         elem_classes=["progress-tasks"]
                     )
                     
@@ -374,7 +371,6 @@ class MyFinGPTUI:
                     gr.Markdown("### Execution Timeline")
                     progress_timeline = gr.Plot(
                         label="Execution Timeline",
-                        height=200,  # Fallback height
                         elem_classes=["progress-timeline"]
                     )
                     
@@ -383,7 +379,6 @@ class MyFinGPTUI:
                     progress_events = gr.Markdown(
                         value="**Progress Events:**\n\nWaiting for execution...",
                         label="Progress Events",
-                        height=200,  # Fallback height
                         elem_classes=["progress-events"]
                     )
                     
@@ -392,7 +387,6 @@ class MyFinGPTUI:
                     progress_events_log = gr.Markdown(
                         value="**Progress Events Log:**\n\nWaiting for execution...",
                         label="Progress Events Log",
-                        height=200,  # Fallback height
                         elem_classes=["progress-events-log"]
                     )
                 
@@ -403,14 +397,12 @@ class MyFinGPTUI:
                             report_output = gr.Markdown(
                                 value="# Analysis & Report\n\nEnter a query above to get started.",
                                 label="Report",
-                                height=600,  # Fallback height
                                 elem_classes=["tab-content"]
                             )
                         
                         with gr.Tab("Visualizations"):
                             visualization_output = gr.Plot(
                                 label="Charts and Visualizations",
-                                height=600,  # Fallback height
                                 elem_classes=["tab-content"]
                             )
                         
@@ -418,7 +410,6 @@ class MyFinGPTUI:
                             agent_activity_output = gr.JSON(
                                 label="Agent Execution Metrics",
                                 value={},
-                                height=600,  # Fallback height
                                 elem_classes=["tab-content"]
                             )
             
