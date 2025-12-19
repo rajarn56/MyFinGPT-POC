@@ -666,8 +666,10 @@ lmstudio:
 - When `EMBEDDING_PROVIDER=lmstudio` (or LLM provider is lmstudio), the system will:
   1. Try to use your LMStudio embedding model first (using `EMBEDDING_MODEL` or config)
   2. Format model name as `openai/your-model-name` for LiteLLM compatibility
-  3. Fall back to OpenAI embeddings if LMStudio fails (requires `OPENAI_API_KEY`)
-  4. Return zero vectors only if both fail
+  3. Automatically set a dummy `OPENAI_API_KEY` if not provided (LMStudio doesn't validate it)
+  4. Fall back to OpenAI embeddings if LMStudio fails (requires `OPENAI_API_KEY` for fallback)
+  5. Return zero vectors only if both fail
+- **Important**: `OPENAI_API_KEY` is NOT required for LMStudio embeddings - the code handles it automatically
 
 **Example: Using LMStudio for Embeddings**:
 ```bash

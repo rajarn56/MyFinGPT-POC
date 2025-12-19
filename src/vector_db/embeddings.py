@@ -73,13 +73,22 @@ class EmbeddingPipeline:
                 if api_base:
                     os.environ["OPENAI_API_BASE"] = api_base
                 
+                # LiteLLM requires OPENAI_API_KEY to be set even for LMStudio (using openai/ prefix)
+                # Set a dummy key if not already set - LMStudio doesn't actually use it
+                api_key = self.config.get("api_key")
+                if api_key:
+                    os.environ["OPENAI_API_KEY"] = api_key
+                elif not os.getenv("OPENAI_API_KEY"):
+                    # Set dummy key for LMStudio (it doesn't validate the key)
+                    os.environ["OPENAI_API_KEY"] = "lm-studio"
+                
                 # LMStudio uses OpenAI-compatible format: openai/<model>
                 # Format the model name for LiteLLM
                 model_name = self.embedding_model
                 if not model_name.startswith("openai/"):
                     model_name = f"openai/{model_name}"
                 
-                logger.debug(f"[Embeddings] Attempting LMStudio embedding with model: {model_name}")
+                logger.debug(f"[Embeddings] Attempting LMStudio embedding with model: {model_name}, api_base: {api_base}")
                 
                 # Try LMStudio embeddings first
                 response = litellm.embedding(

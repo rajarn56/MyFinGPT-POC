@@ -255,13 +255,14 @@ lmstudio:
 - If `EMBEDDING_PROVIDER` is set, it uses that provider for embeddings (can be different from LLM provider)
 - If `EMBEDDING_MODEL` is set, it uses that specific model name
 - For LMStudio: The code will try to use your LMStudio embedding model first, then fall back to OpenAI embeddings if needed
+- **Note**: `OPENAI_API_KEY` is NOT required for LMStudio embeddings - the code automatically sets a dummy key
 - Model name priority: `EMBEDDING_MODEL` env var > config `embedding_model` > config `model` > default
 
 **Example: Using LMStudio for LLM, OpenAI for Embeddings**:
 ```bash
 export LITELLM_PROVIDER=lmstudio
 export EMBEDDING_PROVIDER=openai
-export OPENAI_API_KEY=your-openai-key
+export OPENAI_API_KEY=your-openai-key  # Required only if using OpenAI embeddings
 ```
 
 **Example: Using LMStudio for Both LLM and Embeddings**:
@@ -270,6 +271,7 @@ export LITELLM_PROVIDER=lmstudio
 export EMBEDDING_PROVIDER=lmstudio
 export EMBEDDING_MODEL=your-lmstudio-embedding-model-name
 export LM_STUDIO_API_BASE=http://localhost:1234/v1
+# Note: OPENAI_API_KEY is NOT required - code sets dummy key automatically
 ```
 
 ### Integration Configuration

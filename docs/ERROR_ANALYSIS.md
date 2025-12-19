@@ -66,7 +66,8 @@ This means semantic search is effectively disabled even if the format issue is f
 2. **Zero Embeddings Fix**:
    - ✅ Improved `src/vector_db/embeddings.py` to use LMStudio embedding models directly
    - When provider is "lmstudio", now attempts LMStudio embedding model first (using `EMBEDDING_MODEL` or config)
-   - Falls back to OpenAI embeddings if LMStudio fails (if OPENAI_API_KEY is set)
+   - Automatically sets dummy `OPENAI_API_KEY` if not provided (LMStudio doesn't validate it)
+   - Falls back to OpenAI embeddings if LMStudio fails (requires `OPENAI_API_KEY` for fallback)
    - Only returns zero vectors if both LMStudio and OpenAI embeddings fail
    - Added support for `EMBEDDING_PROVIDER` environment variable to specify separate embedding provider
    - Added support for `EMBEDDING_MODEL` environment variable to specify embedding model name
@@ -80,7 +81,7 @@ This means semantic search is effectively disabled even if the format issue is f
 
 ### Testing Status
 - ✅ Embedding format fix verified (no triple-nesting)
-- ⚠️  Zero embeddings fix requires OPENAI_API_KEY to be set when using lmstudio provider
+- ✅ Zero embeddings fix - OPENAI_API_KEY no longer required for LMStudio (code sets dummy key automatically)
 - 📝 Test script available for verification
 
 ---
@@ -150,13 +151,15 @@ The guardrails validation checks if the final report contains non-financial keyw
 
 2. **Configure Embedding Model** (if using lmstudio provider):
    
-   **Option A: Use LMStudio embedding model**:
+   **Option A: Use LMStudio embedding model** (Recommended):
    ```bash
    export EMBEDDING_MODEL="your-lmstudio-embedding-model-name"
    export EMBEDDING_PROVIDER=lmstudio  # Optional if LLM provider is already lmstudio
+   export LM_STUDIO_API_BASE=http://localhost:1234/v1  # Optional, defaults to this
+   # Note: OPENAI_API_KEY is NOT required - code sets dummy key automatically
    ```
    
-   **Option B: Use OpenAI embeddings as fallback**:
+   **Option B: Use OpenAI embeddings**:
    ```bash
    export OPENAI_API_KEY="your-key-here"
    export EMBEDDING_PROVIDER=openai  # Explicitly use OpenAI for embeddings

@@ -355,8 +355,10 @@ merged_state = StateManager.merge_parallel_contexts(research_results)
 - **OpenAI**: Uses `text-embedding-ada-002` by default
 - **LMStudio**: 
   - Tries LMStudio embedding model first (using configured model name)
-  - Falls back to OpenAI embeddings if LMStudio fails (requires `OPENAI_API_KEY`)
+  - Automatically sets dummy `OPENAI_API_KEY` if not provided (LMStudio doesn't validate it)
+  - Falls back to OpenAI embeddings if LMStudio fails (requires `OPENAI_API_KEY` for fallback)
   - Returns zero vectors only if both fail
+  - **Note**: `OPENAI_API_KEY` is NOT required for LMStudio embeddings - handled automatically
 - **Other providers**: Falls back to OpenAI embeddings
 
 **Methods**:

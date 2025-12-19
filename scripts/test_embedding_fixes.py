@@ -43,7 +43,8 @@ def test_embedding_generation():
         if is_all_zeros:
             print("⚠️  WARNING: Embedding is all zeros!")
             print("   This means semantic search will be disabled.")
-            print("   Check if OPENAI_API_KEY is set if using lmstudio provider.")
+            print("   For LMStudio: Ensure EMBEDDING_MODEL is set and LMStudio server is running.")
+            print("   OPENAI_API_KEY is NOT required for LMStudio (code sets dummy key automatically).")
         else:
             print("✅ Embedding generated successfully (not all zeros)")
             # Show sample values
@@ -215,19 +216,47 @@ def main():
     provider = llm_config.default_provider
     print(f"   LLM Provider: {provider}")
     
-    # Check OpenAI key
-    openai_key = os.getenv("OPENAI_API_KEY")
-    if openai_key:
-        print(f"   OPENAI_API_KEY: {'*' * 20} (set)")
-    else:
-        print(f"   OPENAI_API_KEY: NOT SET")
-        if provider == "lmstudio":
-            print("   ⚠️  Warning: Using lmstudio without OpenAI key will result in zero embeddings")
-    
     # Check embedding provider env var
     embedding_provider = os.getenv("EMBEDDING_PROVIDER")
     if embedding_provider:
         print(f"   EMBEDDING_PROVIDER: {embedding_provider}")
+        effective_provider = embedding_provider
+    else:
+        effective_provider = provider
+    
+    # Check LMStudio-specific configuration
+    if effective_provider == "lmstudio":
+        lmstudio_api_base = os.getenv("LM_STUDIO_API_BASE")
+        if lmstudio_api_base:
+            print(f"   LM_STUDIO_API_BASE: {lmstudio_api_base}")
+        else:
+            print(f"   LM_STUDIO_API_BASE: NOT SET (will use default: http://localhost:1234/v1)")
+        
+        embedding_model = os.getenv("EMBEDDING_MODEL")
+        if embedding_model:
+            print(f"   EMBEDDING_MODEL: {embedding_model}")
+        else:
+            print(f"   EMBEDDING_MODEL: NOT SET (will use config default or text-embedding-ada-002)")
+            print("   ⚠️  Note: Set EMBEDDING_MODEL to your LMStudio embedding model name")
+        
+        print("\n   ℹ️  LMStudio Configuration:")
+        print("      - OPENAI_API_KEY is NOT required for LMStudio (code sets dummy key)")
+        print("      - Ensure LMStudio server is running at the configured API base")
+        print("      - Set EMBEDDING_MODEL to your LMStudio embedding model name")
+        print("      - Example: export EMBEDDING_MODEL=your-embedding-model-name")
+    
+    # Check OpenAI key (only needed if using OpenAI provider or as fallback)
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key:
+        print(f"   OPENAI_API_KEY: {'*' * 20} (set)")
+        if effective_provider == "lmstudio":
+            print("      (Not required for LMStudio, but available as fallback)")
+    else:
+        print(f"   OPENAI_API_KEY: NOT SET")
+        if effective_provider == "lmstudio":
+            print("      (Not required for LMStudio embeddings)")
+        else:
+            print("      ⚠️  Required for OpenAI embeddings")
     
     # Run tests
     results = []
