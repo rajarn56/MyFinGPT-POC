@@ -1,0 +1,74 @@
+============================================================
+EMBEDDING FIXES VERIFICATION TEST
+============================================================
+
+Checking configuration...
+   LLM Provider: lmstudio
+   EMBEDDING_PROVIDER: lmstudio
+   LM_STUDIO_API_BASE: http://localhost:1234/v1
+   EMBEDDING_MODEL: text-embedding-nomic-embed-text-v1.5
+
+   ℹ️  LMStudio Configuration:
+      - OPENAI_API_KEY is NOT required for LMStudio (code sets dummy key)
+      - Ensure LMStudio server is running at the configured API base
+      - Set EMBEDDING_MODEL to your LMStudio embedding model name
+      - Example: export EMBEDDING_MODEL=your-embedding-model-name
+   OPENAI_API_KEY: ******************** (set)
+      (Not required for LMStudio, but available as fallback)
+
+============================================================
+TEST 1: Embedding Generation
+============================================================
+2025-12-19 01:38:08.801 | INFO     | src.vector_db.embeddings:generate_embedding:69 - [Embeddings] Provider is lmstudio, using model: text-embedding-nomic-embed-text-v1.5
+2025-12-19 01:38:08.801 | DEBUG    | src.vector_db.embeddings:generate_embedding:91 - [Embeddings] Attempting LMStudio embedding with model: openai/text-embedding-nomic-embed-text-v1.5, api_base: http://localhost:1234/v1
+2025-12-19 01:38:08.896 | INFO     | src.vector_db.embeddings:generate_embedding:106 - [Embeddings] Successfully generated LMStudio embedding
+❌ Error generating embedding: Embedding should be 1536 dimensions, got 768
+Traceback (most recent call last):
+  File "/Users/rajarn/Learn-Agentic/MyFinGPT-POC/./scripts/test_embedding_fixes.py", line 39, in test_embedding_generation
+    assert len(embedding) == 1536, f"Embedding should be 1536 dimensions, got {len(embedding)}"
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Embedding should be 1536 dimensions, got 768
+
+============================================================
+TEST 2: Embedding Format (No Triple Nesting)
+============================================================
+2025-12-19 01:38:08.897 | INFO     | src.vector_db.embeddings:generate_embedding:69 - [Embeddings] Provider is lmstudio, using model: text-embedding-nomic-embed-text-v1.5
+2025-12-19 01:38:08.897 | DEBUG    | src.vector_db.embeddings:generate_embedding:91 - [Embeddings] Attempting LMStudio embedding with model: openai/text-embedding-nomic-embed-text-v1.5, api_base: http://localhost:1234/v1
+2025-12-19 01:38:08.910 | INFO     | src.vector_db.embeddings:generate_embedding:106 - [Embeddings] Successfully generated LMStudio embedding
+✅ Embedding format is correct (flat list of floats)
+   Type: <class 'list'>
+   Length: 768
+   First element type: <class 'float'>
+
+============================================================
+TEST 3: ChromaDB Query Format
+============================================================
+2025-12-19 01:38:08.910 | INFO     | src.vector_db.chroma_client:__init__:36 - [VectorDB] Initializing Chroma client | Path: ./chroma_db
+2025-12-19 01:38:08.911 | DEBUG    | src.vector_db.chroma_client:__init__:40 - [VectorDB] Database directory ensured: ./chroma_db
+2025-12-19 01:38:08.985 | DEBUG    | src.vector_db.chroma_client:__init__:50 - [VectorDB] Chroma PersistentClient created
+2025-12-19 01:38:08.985 | DEBUG    | src.vector_db.chroma_client:__init__:53 - [VectorDB] Initializing collections...
+2025-12-19 01:38:08.986 | INFO     | src.vector_db.chroma_client:__init__:64 - [VectorDB] Chroma client initialized | Collections: ['financial_news', 'company_analysis', 'market_trends']
+2025-12-19 01:38:08.986 | INFO     | src.vector_db.embeddings:generate_embedding:69 - [Embeddings] Provider is lmstudio, using model: text-embedding-nomic-embed-text-v1.5
+2025-12-19 01:38:08.986 | DEBUG    | src.vector_db.embeddings:generate_embedding:91 - [Embeddings] Attempting LMStudio embedding with model: openai/text-embedding-nomic-embed-text-v1.5, api_base: http://localhost:1234/v1
+2025-12-19 01:38:09.000 | INFO     | src.vector_db.embeddings:generate_embedding:106 - [Embeddings] Successfully generated LMStudio embedding
+   Query embedding type: <class 'list'>
+   Query embedding length: 768
+   Is nested: False
+2025-12-19 01:38:09.000 | DEBUG    | src.vector_db.chroma_client:query:211 - [VectorDB] Querying company_analysis | Query: embedding-based... | n_results: 3 | Has embedding: True
+2025-12-19 01:38:09.001 | ERROR    | src.vector_db.chroma_client:query:244 - [VectorDB] Query failed after 0.00s: Collection expecting embedding with dimension of 1536, got 768
+⚠️  Query returned error (may be expected): Collection expecting embedding with dimension of 1536, got 768
+   Format appears correct (no triple-nesting error)
+
+⚠️  Skipping end-to-end test - embeddings are all zeros
+
+============================================================
+TEST SUMMARY
+============================================================
+❌ FAILED: Embedding Generation
+✅ PASSED: Embedding Format
+✅ PASSED: ChromaDB Query Format
+⏭️  SKIPPED: End-to-End Test
+
+============================================================
+✅ ALL TESTS PASSED
+============================================================
