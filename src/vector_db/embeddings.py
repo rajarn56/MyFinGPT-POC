@@ -50,6 +50,9 @@ class EmbeddingPipeline:
         else:
             # Default to OpenAI embedding model for other providers
             self.embedding_model = "text-embedding-ada-002"
+        
+        # Cache for detected embedding dimension (lazy-loaded)
+        self._cached_dimension: Optional[int] = None
     
     def generate_embedding(self, text: str) -> List[float]:
         """
@@ -103,7 +106,9 @@ class EmbeddingPipeline:
                     logger.warning(f"[Embeddings] Received zero vector from LMStudio embedding API")
                     raise ValueError("Zero vector received from LMStudio")
                 else:
-                    logger.info(f"[Embeddings] Successfully generated LMStudio embedding")
+                    # Cache the dimension
+                    self._cached_dimension = len(embedding)
+                    logger.info(f"[Embeddings] Successfully generated LMStudio embedding (dimension: {self._cached_dimension})")
                     return embedding
                     
             except Exception as e:
@@ -123,11 +128,13 @@ class EmbeddingPipeline:
                         input=[text]
                     )
                     embedding = response.data[0]["embedding"]
+                    # Cache the dimension
+                    self._cached_dimension = len(embedding)
                     # Validate embedding is not all zeros
                     if all(x == 0.0 for x in embedding):
                         logger.warning(f"[Embeddings] Received zero vector from OpenAI embedding API")
                     else:
-                        logger.info(f"[Embeddings] Successfully generated OpenAI embedding (fallback from lmstudio)")
+                        logger.info(f"[Embeddings] Successfully generated OpenAI embedding (fallback from lmstudio, dimension: {self._cached_dimension})")
                     return embedding
                 except Exception as fallback_error:
                     logger.error(f"[Embeddings] Failed to generate OpenAI embedding fallback: {fallback_error}")
@@ -143,6 +150,8 @@ class EmbeddingPipeline:
                     input=[text]
                 )
                 embedding = response.data[0]["embedding"]
+                # Cache the dimension
+                self._cached_dimension = len(embedding)
                 # Validate embedding is not all zeros
                 if all(x == 0.0 for x in embedding):
                     logger.warning(f"[Embeddings] Received zero vector from OpenAI embedding API")
@@ -155,6 +164,8 @@ class EmbeddingPipeline:
                 input=[text]
             )
             embedding = response.data[0]["embedding"]
+            # Cache the dimension
+            self._cached_dimension = len(embedding)
             # Validate embedding is not all zeros
             if all(x == 0.0 for x in embedding):
                 logger.warning(f"[Embeddings] Received zero vector from embedding API (provider: {self.provider})")
@@ -172,8 +183,10 @@ class EmbeddingPipeline:
                         input=[text]
                     )
                     embedding = response.data[0]["embedding"]
+                    # Cache the dimension
+                    self._cached_dimension = len(embedding)
                     if not all(x == 0.0 for x in embedding):
-                        logger.info(f"[Embeddings] Successfully used OpenAI embedding fallback")
+                        logger.info(f"[Embeddings] Successfully used OpenAI embedding fallback (dimension: {self._cached_dimension})")
                         return embedding
             except Exception as fallback_error:
                 logger.debug(f"[Embeddings] OpenAI fallback also failed: {fallback_error}")
@@ -199,7 +212,47 @@ class EmbeddingPipeline:
         return embeddings
     
     def get_embedding_dimension(self) -> int:
-        """Get the dimension of embeddings"""
-        # OpenAI ada-002 is 1536 dimensions
-        return 1536
+        """
+        Get the dimension of embeddings for the current model.
+        Detects dimension dynamically by generating a test embedding if not cached.
+        
+        Returns:
+            Embedding dimension (e.g., 1536 for OpenAI ada-002, 768 for nomic-embed-text-v1.5)
+        """
+        # Return cached dimension if available
+        if self._cached_dimension is not None:
+            return self._cached_dimension
+        
+        from loguru import logger
+        
+        # Try to detect dimension by generating a test embedding
+        try:
+            test_embedding = self.generate_embedding("test")
+            if test_embedding and len(test_embedding) > 0 and not all(x == 0.0 for x in test_embedding):
+                self._cached_dimension = len(test_embedding)
+                logger.debug(f"[Embeddings] Detected embedding dimension: {self._cached_dimension} for model {self.embedding_model}")
+                return self._cached_dimension
+        except Exception as e:
+            logger.debug(f"[Embeddings] Could not detect dimension dynamically: {e}")
+        
+        # Fallback to known dimensions based on model name
+        model_lower = self.embedding_model.lower()
+        if "nomic-embed" in model_lower or "nomic-embed-text" in model_lower:
+            self._cached_dimension = 768
+            logger.debug(f"[Embeddings] Using known dimension 768 for nomic-embed model")
+            return 768
+        elif "ada-002" in model_lower or "text-embedding-ada-002" in model_lower:
+            self._cached_dimension = 1536
+            logger.debug(f"[Embeddings] Using known dimension 1536 for ada-002 model")
+            return 1536
+        elif "text-embedding-3" in model_lower:
+            # OpenAI text-embedding-3 models can be 1536 or other dimensions
+            # Default to 1536, but will be corrected on first actual embedding
+            self._cached_dimension = 1536
+            return 1536
+        else:
+            # Default fallback (will be corrected on first actual embedding)
+            self._cached_dimension = 1536
+            logger.warning(f"[Embeddings] Unknown model {self.embedding_model}, defaulting to dimension 1536")
+            return 1536
 

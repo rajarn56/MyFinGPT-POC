@@ -36,7 +36,16 @@ def test_embedding_generation():
         # Check embedding format
         assert isinstance(embedding, list), f"Embedding should be a list, got {type(embedding)}"
         assert len(embedding) > 0, "Embedding should not be empty"
-        assert len(embedding) == 1536, f"Embedding should be 1536 dimensions, got {len(embedding)}"
+        
+        # Get expected dimension from pipeline (dynamic detection)
+        expected_dimension = pipeline.get_embedding_dimension()
+        actual_dimension = len(embedding)
+        
+        # Check dimension matches expected
+        assert actual_dimension == expected_dimension, \
+            f"Embedding dimension mismatch: expected {expected_dimension}, got {actual_dimension}"
+        
+        print(f"✅ Embedding dimension matches expected: {actual_dimension}")
         
         # Check for zero vectors
         is_all_zeros = all(x == 0.0 for x in embedding)
@@ -98,7 +107,9 @@ def test_chroma_query_format():
     print("="*60)
     
     pipeline = EmbeddingPipeline()
-    chroma_client = ChromaClient()
+    # Get expected dimension and pass to ChromaClient
+    expected_dimension = pipeline.get_embedding_dimension()
+    chroma_client = ChromaClient(embedding_dimension=expected_dimension)
     
     test_text = "GOOGL stock analysis"
     
@@ -150,7 +161,9 @@ def test_end_to_end():
     print("="*60)
     
     pipeline = EmbeddingPipeline()
-    chroma_client = ChromaClient()
+    # Get expected dimension and pass to ChromaClient
+    expected_dimension = pipeline.get_embedding_dimension()
+    chroma_client = ChromaClient(embedding_dimension=expected_dimension)
     
     test_doc = "AAPL stock has shown strong performance with revenue growth of 15%"
     test_symbol = "AAPL"

@@ -19,13 +19,16 @@ load_dotenv()
 class ChromaClient:
     """Chroma vector database client with collections for financial data"""
     
-    def __init__(self, db_path: Optional[str] = None, persist_directory: Optional[str] = None):
+    def __init__(self, db_path: Optional[str] = None, persist_directory: Optional[str] = None, 
+                 embedding_dimension: Optional[int] = None):
         """
         Initialize Chroma client
         
         Args:
             db_path: Path to database (defaults to ./chroma_db)
             persist_directory: Persistence directory (same as db_path if not specified)
+            embedding_dimension: Expected embedding dimension. If provided, collections will be
+                                recreated if they have a different dimension.
         """
         if db_path is None:
             db_path = os.getenv("CHROMA_DB_PATH", "./chroma_db")
@@ -49,6 +52,9 @@ class ChromaClient:
         )
         logger.debug("[VectorDB] Chroma PersistentClient created")
         
+        # Store expected embedding dimension
+        self.expected_dimension = embedding_dimension
+        
         # Initialize collections
         logger.debug("[VectorDB] Initializing collections...")
         self.collections = {
@@ -64,11 +70,95 @@ class ChromaClient:
         logger.info(f"[VectorDB] Chroma client initialized | Collections: {list(self.collections.keys())}")
     
     def _get_or_create_collection(self, name: str):
-        """Get or create a collection"""
+        """
+        Get or create a collection, handling dimension mismatches.
+        
+        If a collection exists with a different dimension than expected, it will be recreated.
+        """
         try:
-            return self.client.get_collection(name=name)
+            collection = self.client.get_collection(name=name)
+            
+            # Check if we need to validate dimension
+            if self.expected_dimension is not None:
+                # Try to detect collection dimension by checking metadata or peeking at data
+                # ChromaDB doesn't expose dimension directly, so we check on first add/query
+                # For now, we'll let it fail on mismatch and handle it in add_document/query
+                pass
+            
+            return collection
         except Exception:
+            # Collection doesn't exist, create it
+            # Note: ChromaDB will infer dimension from first embedding if not specified
             return self.client.create_collection(name=name)
+    
+    def _recreate_collection_if_dimension_mismatch(self, collection_name: str, embedding: List[float]):
+        """
+        Recreate collection if dimension mismatch is detected.
+        
+        Args:
+            collection_name: Name of the collection
+            embedding: Embedding vector to check dimension
+            
+        Returns:
+            Collection (possibly recreated)
+        """
+        if not embedding or len(embedding) == 0:
+            return self.get_collection(collection_name)
+        
+        actual_dimension = len(embedding)
+        
+        # Check if collection exists and has wrong dimension
+        try:
+            collection = self.client.get_collection(name=collection_name)
+            
+            # If collection is empty, we can safely recreate it
+            if collection.count() == 0:
+                logger.debug(f"[VectorDB] Collection {collection_name} is empty, recreating with dimension {actual_dimension}")
+                try:
+                    self.client.delete_collection(name=collection_name)
+                except:
+                    pass
+                collection = self.client.create_collection(name=collection_name)
+                self.collections[collection_name] = collection
+                return collection
+            
+            # Collection has documents - try to detect dimension mismatch by attempting to add
+            # We'll catch dimension errors and recreate if needed
+            try:
+                # This will fail if dimension mismatch
+                collection.add(
+                    ids=["_dimension_test"],
+                    documents=["test"],
+                    metadatas=[{}],
+                    embeddings=[embedding]
+                )
+                # If successful, delete test document
+                collection.delete(ids=["_dimension_test"])
+                return collection
+            except Exception as e:
+                error_msg = str(e).lower()
+                if "dimension" in error_msg or "embedding" in error_msg or "expected" in error_msg:
+                    logger.warning(f"[VectorDB] Dimension mismatch detected for {collection_name}: "
+                                 f"collection expects different dimension. Recreating collection...")
+                    # Delete old collection (this will lose existing data, but dimension mismatch makes it unusable)
+                    try:
+                        self.client.delete_collection(name=collection_name)
+                    except:
+                        pass
+                    # Create new collection (dimension will be set by first embedding)
+                    collection = self.client.create_collection(name=collection_name)
+                    logger.info(f"[VectorDB] Recreated collection {collection_name} with dimension {actual_dimension}")
+                    # Update cached collection
+                    self.collections[collection_name] = collection
+                    return collection
+                else:
+                    # Some other error, re-raise
+                    raise
+        except Exception:
+            # Collection doesn't exist, create it
+            collection = self.client.create_collection(name=collection_name)
+            self.collections[collection_name] = collection
+            return collection
     
     def get_collection(self, collection_name: str):
         """Get a collection by name"""
@@ -123,6 +213,9 @@ class ChromaClient:
         # Add document
         try:
             if embedding:
+                # Ensure collection has correct dimension (recreate if mismatch)
+                collection = self._recreate_collection_if_dimension_mismatch(collection_name, embedding)
+                
                 collection.add(
                     ids=[document_id],
                     documents=[document],
@@ -217,6 +310,9 @@ class ChromaClient:
         
         try:
             if query_embeddings:
+                # Ensure collection has correct dimension (recreate if mismatch)
+                collection = self._recreate_collection_if_dimension_mismatch(collection_name, query_embeddings)
+                
                 results = collection.query(
                     query_embeddings=[query_embeddings],
                     n_results=n_results,
