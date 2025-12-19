@@ -43,8 +43,8 @@ chroma_db/
 *.sqlite
 
 # Logs
-*.log
-logs/
+#*.log
+#logs/
 
 # OS
 .DS_Store

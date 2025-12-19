@@ -1,0 +1,6 @@
+2025-12-18 23:51:17.477 | INFO     | src.ui.gradio_app:launch:344 | [UI] Launching Gradio app | Host: 0.0.0.0 | Port: 7860 | Share: False
+2025-12-18 23:51:17.573 | INFO     | src.ui.gradio_app:launch:349 | [UI] Gradio app launching at http://0.0.0.0:7860
+2025-12-18 23:51:49.007 | INFO     | src.ui.gradio_app:process_query:65 | [UI] User query received | Length: 18 chars | Query: Analyze AAPL stock...
+2025-12-18 23:52:12.016 | INFO     | src.ui.gradio_app:process_query:205 | [UI] Query processing completed successfully | Transaction ID: 6e91d46a | Total time: 23.01s | Charts: 2 | Citations: 4
+2025-12-18 23:52:44.953 | INFO     | src.ui.gradio_app:process_query:65 | [UI] User query received | Length: 29 chars | Query: Compare AAPL, MSFT, and GOOGL...
+2025-12-18 23:53:27.131 | INFO     | src.ui.gradio_app:process_query:205 | [UI] Query processing completed successfully | Transaction ID: 7e7e1fca | Total time: 42.18s | Charts: 3 | Citations: 240

@@ -8,7 +8,7 @@ integrations:
     requires_api_key: false
   
   alpha_vantage:
-    enabled: false
+    enabled: true
     description: "Alpha Vantage API"
     requires_api_key: true
   

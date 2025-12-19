@@ -1,0 +1,22 @@
+2025-12-18 23:51:49.008 | INFO     | src.orchestrator.workflow:stream_query:260 | [WORKFLOW] Streaming query | Transaction ID: 6e91d46a | Length: 18 chars | Query: Analyze AAPL stock...
+2025-12-18 23:51:49.009 | INFO     | src.orchestrator.graph:stream:188 | [GRAPH] Starting streaming execution | Transaction ID: 6e91d46a | Query: Analyze AAPL stock...
+2025-12-18 23:51:49.013 | INFO     | src.orchestrator.graph:_research_node:71 | [GRAPH] Executing Research Node | Query: Analyze AAPL stock... | Symbols: ['AAPL']
+2025-12-18 23:51:49.767 | INFO     | src.orchestrator.graph:_research_node:73 | [GRAPH] Research Node completed | Symbols processed: 1
+2025-12-18 23:51:49.783 | INFO     | src.orchestrator.graph:_analyst_node:81 | [GRAPH] Executing Analyst Node | Symbols: ['AAPL']
+2025-12-18 23:51:51.241 | INFO     | src.orchestrator.graph:_analyst_node:83 | [GRAPH] Analyst Node completed | Analysis results: 1
+2025-12-18 23:51:51.246 | INFO     | src.orchestrator.graph:_comparison_node:91 | [GRAPH] Executing Comparison Node | Symbols: ['AAPL']
+2025-12-18 23:52:00.750 | INFO     | src.orchestrator.graph:_comparison_node:94 | [GRAPH] Comparison Node completed | Comparison type: benchmark
+2025-12-18 23:52:00.757 | INFO     | src.orchestrator.graph:_reporting_node:102 | [GRAPH] Executing Reporting Node | Symbols: ['AAPL']
+2025-12-18 23:52:12.005 | INFO     | src.orchestrator.graph:_reporting_node:105 | [GRAPH] Reporting Node completed | Report length: 5334 chars
+2025-12-18 23:52:12.009 | INFO     | src.orchestrator.graph:stream:226 | [GRAPH] Streaming execution completed | Transaction ID: 6e91d46a | Total updates: 4
+2025-12-18 23:52:44.953 | INFO     | src.orchestrator.workflow:stream_query:260 | [WORKFLOW] Streaming query | Transaction ID: 7e7e1fca | Length: 29 chars | Query: Compare AAPL, MSFT, and GOOGL...
+2025-12-18 23:52:44.954 | INFO     | src.orchestrator.graph:stream:188 | [GRAPH] Starting streaming execution | Transaction ID: 7e7e1fca | Query: Compare AAPL, MSFT, and GOOGL...
+2025-12-18 23:52:44.955 | INFO     | src.orchestrator.graph:_research_node:71 | [GRAPH] Executing Research Node | Query: Compare AAPL, MSFT, and GOOGL... | Symbols: ['AAPL', 'MSFT', 'GOOGL']
+2025-12-18 23:52:45.604 | INFO     | src.orchestrator.graph:_research_node:73 | [GRAPH] Research Node completed | Symbols processed: 3
+2025-12-18 23:52:45.607 | INFO     | src.orchestrator.graph:_analyst_node:81 | [GRAPH] Executing Analyst Node | Symbols: ['AAPL', 'MSFT', 'GOOGL']
+2025-12-18 23:52:49.580 | INFO     | src.orchestrator.graph:_analyst_node:83 | [GRAPH] Analyst Node completed | Analysis results: 3
+2025-12-18 23:52:49.590 | INFO     | src.orchestrator.graph:_comparison_node:91 | [GRAPH] Executing Comparison Node | Symbols: ['AAPL', 'MSFT', 'GOOGL']
+2025-12-18 23:53:11.085 | INFO     | src.orchestrator.graph:_comparison_node:94 | [GRAPH] Comparison Node completed | Comparison type: side_by_side
+2025-12-18 23:53:11.098 | INFO     | src.orchestrator.graph:_reporting_node:102 | [GRAPH] Executing Reporting Node | Symbols: ['AAPL', 'MSFT', 'GOOGL']
+2025-12-18 23:53:27.110 | INFO     | src.orchestrator.graph:_reporting_node:105 | [GRAPH] Reporting Node completed | Report length: 6608 chars
+2025-12-18 23:53:27.119 | INFO     | src.orchestrator.graph:stream:226 | [GRAPH] Streaming execution completed | Transaction ID: 7e7e1fca | Total updates: 4
