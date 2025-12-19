@@ -5,17 +5,25 @@ from typing import Dict, Any, Optional
 from loguru import logger
 import time
 import os
+import sys
+from pathlib import Path
 
-from ..orchestrator.workflow import MyFinGPTWorkflow
-from ..utils.guardrails import GuardrailsError
-from .components import (
+# Add project root to Python path for imports when run directly by Streamlit
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Now use absolute imports that work both when run directly and as module
+from src.orchestrator.workflow import MyFinGPTWorkflow
+from src.utils.guardrails import GuardrailsError
+from src.ui.components import (
     format_report_markdown,
     create_price_trend_chart,
     create_comparison_chart,
     create_sentiment_chart,
     format_agent_activity
 )
-from .progress_display import (
+from src.ui.progress_display import (
     update_progress_display,
     format_progress_events_markdown,
     create_execution_timeline,
