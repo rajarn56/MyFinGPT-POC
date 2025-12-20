@@ -101,7 +101,7 @@ python -c "import gradio; import langgraph; import chromadb; print('All dependen
 #### UI Mode Selection
 
 MyFinGPT supports two UI frameworks:
-- **Gradio** (default): Traditional Gradio interface with horizontal split layout
+- **Gradio** (default): Traditional Gradio interface with single-column vertical layout
 - **Streamlit**: Modern Streamlit interface with two-column layout and elegant dark theme
 
 **Selecting UI Mode:**
@@ -152,10 +152,11 @@ python main.py --ui-mode streamlit --provider openai --port 8501 --host 0.0.0.0
 - Server starts on http://localhost:7860 (or specified port)
 - Logs show: `[UI] Launching Gradio app | Host: 0.0.0.0 | Port: 7860`
 - Browser opens automatically (or navigate manually)
-- UI shows horizontal split layout with responsive viewport-based heights:
-  - Left column: Query input, controls, and progress panels (responsive heights using vh units)
-  - Right column: Three result tabs (Analysis & Report, Visualizations, Agent Activity) with responsive heights
-  - All components adapt to screen size while maintaining minimum heights for usability
+- UI shows single-column vertical layout:
+  - Query input row with Quick Tips sidebar
+  - Full-width progress panel below query input
+  - Full-width result tabs (Analysis & Report, Visualizations, Agent Activity) below progress panel
+  - Components flow naturally without scroll bars
 
 **Streamlit:**
 - Server starts on http://localhost:8501 (or specified port)

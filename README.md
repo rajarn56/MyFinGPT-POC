@@ -726,21 +726,24 @@ MyFinGPT supports two UI frameworks with similar layouts:
 
 #### Gradio UI Layout
 
-The Gradio UI uses a horizontal split-screen layout (50/50) with responsive viewport-based heights:
+The Gradio UI uses a single-column vertical layout:
 
-**Left Column (50%)**:
-- **Query Input**: Enter your financial query (8vh height, min 80px, responsive)
-- **Example Queries Dropdown**: Select from pre-defined examples
-- **Submit/Clear Buttons**: Process your query or clear inputs
-- **Execution Progress**: Current agent status and active tasks (4vh each, min 40px, responsive)
-- **Execution Timeline**: Visual timeline chart (15vh height, min 150px, responsive)
-- **Progress Events**: Recent progress events (15vh height, min 150px, scrollable)
-- **Progress Events Log**: Complete progress log (15vh height, min 150px, scrollable)
+**Layout Structure**:
+- Query input row with Quick Tips sidebar (scale=3 and scale=1 columns)
+- Full-width progress panel below query input
+- Full-width result tabs below progress panel
 
-**Right Column (50%)**:
-- **Tabs**: Switch between Analysis & Report, Visualizations, and Agent Activity
-- All tab content is scrollable with calc(100vh - 250px) height, min 400px, responsive
-- All tabs visible and clickable simultaneously
+**Component Organization**:
+- **Query Input Row**: Query input textbox, Submit/Clear buttons, Example queries dropdown, Quick Tips sidebar
+- **Progress Panel** (full width):
+  - Execution Progress: Current Agent Status and Active Tasks
+  - Progress Events: Recent progress events log
+  - Execution Timeline: Visual timeline chart (Plotly)
+  - Progress Events Log: Complete progress events log
+- **Result Tabs** (full width):
+  - **Analysis & Report**: Comprehensive report with citations
+  - **Visualizations**: Interactive charts (Plotly)
+  - **Agent Activity**: Execution metrics and token usage
 
 #### Streamlit UI Layout
 
@@ -762,12 +765,42 @@ The Streamlit UI uses a two-column layout (50/50) with elegant dark theme:
 
 ### UI Navigation
 
-- **Query Input** (left column): Enter your financial query
-- **Example Queries Dropdown** (left column): Select from pre-defined examples
-- **Submit Query** (left column): Process your query
-- **Clear** (left column): Clear the input and results
-- **Progress Panels** (left column): Monitor real-time execution progress
-- **Tabs** (right column): Switch between Analysis & Report, Visualizations, and Agent Activity
+- **Query Input**: Enter your financial query
+- **Example Queries Dropdown**: Select from pre-defined examples
+- **Submit Query**: Process your query
+- **Clear**: Clear the input and results
+- **Progress Panels**: Monitor real-time execution progress
+- **Tabs**: Switch between Analysis & Report, Visualizations, and Agent Activity
+
+### Future UI Design
+
+#### Planned Gradio UI Enhancement: Two-Column Horizontal Split Layout
+
+A future enhancement for the Gradio UI will implement a horizontal split-screen layout (50/50) with responsive viewport-based heights for optimal single-screen viewing:
+
+**Planned Layout**: Horizontal split-screen (50/50) with responsive viewport-based heights
+
+**Planned Left Column (50%)**:
+- Query input textbox (8vh height, min 80px, responsive)
+- Example queries dropdown
+- Submit/Clear buttons
+- Execution Progress: Current agent status and active tasks (4vh each, min 40px, responsive)
+- Execution Timeline: Visual timeline chart (15vh height, min 150px, responsive)
+- Progress Events: Recent progress events (15vh height, min 150px, scrollable)
+- Progress Events Log: Complete progress log (15vh height, min 150px, scrollable)
+
+**Planned Right Column (50%)**:
+- Tabs: Switch between Analysis & Report, Visualizations, and Agent Activity
+- All tab content scrollable with calc(100vh - 250px) height, min 400px, responsive
+- All tabs visible and clickable simultaneously
+
+**Planned Features**:
+- Responsive Design: Custom CSS with viewport height (vh) units for adaptive sizing
+- All content visible in single screen
+- Scrollable panels for long content
+- Optimized for single-screen viewing experience
+
+**Note**: This enhancement is planned for future implementation. The current Gradio UI uses a single-column vertical layout.
 
 ## Development
 

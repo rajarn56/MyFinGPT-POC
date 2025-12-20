@@ -605,65 +605,71 @@ python main.py --ui-mode streamlit # Use Streamlit
 
 **File**: `src/ui/gradio_app.py`
 
-**Layout**: Horizontal split-screen (50/50) for single-screen visibility
+**Layout**: Single-column vertical layout
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  MyFinGPT - Multi-Agent Financial Analysis System          │
-├──────────────────────────┬──────────────────────────────────┤
-│   LEFT HALF (50%)        │   RIGHT HALF (50%)               │
-│                          │                                  │
-│  Query Input (8vh, min 80px) │  ┌──────────────────────────┐   │
-│  Example Queries            │  │ [Analysis] [Viz] [Activity]│   │
-│  [Submit] [Clear]           │  └──────────────────────────┘   │
-│                              │  │                              │
-│  Execution Progress         │  │  Tab Content (calc(100vh-250px),│
-│  - Current Agent (4vh, min 40px) │  │   min 400px, scrollable)  │
-│  - Active Tasks (4vh, min 40px) │  │                              │
-│                              │  │                              │
-│  Execution Timeline         │  │                              │
-│  (15vh, min 150px)         │  │                              │
-│                              │  │                              │
-│  Progress Events            │  │                              │
-│  (15vh, min 150px, scrollable) │  │                              │
-│                              │  │                              │
-│  Progress Events Log        │  │                              │
-│  (15vh, min 150px, scrollable) │  └──────────────────────────┘   │
-│                          │                                  │
-└──────────────────────────┴──────────────────────────────────┘
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Query Input Row                                           │
+│  ┌──────────────────────────┬──────────────────────────┐  │
+│  │ Query Input (scale=3)    │ Quick Tips (scale=1)     │  │
+│  │ Example Queries           │                          │  │
+│  │ [Submit] [Clear]          │                          │  │
+│  └──────────────────────────┴──────────────────────────┘  │
+│                                                             │
+│  Execution Progress (full width)                           │
+│  - Current Agent Status                                    │
+│  - Active Tasks                                            │
+│  - Progress Events                                         │
+│  - Execution Timeline (Plotly chart)                      │
+│  - Progress Events Log                                     │
+│                                                             │
+│  Result Tabs (full width)                                 │
+│  ┌─────────────────────────────────────────────────────┐  │
+│  │ [Analysis & Report] [Visualizations] [Agent Activity]│  │
+│  │                                                      │  │
+│  │  Tab Content                                        │  │
+│  │                                                      │  │
+│  └─────────────────────────────────────────────────────┘  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### 6.3 Gradio Component Structure
 
 **MyFinGPTUI Class**:
-- Creates Gradio interface with horizontal split layout
+- Creates Gradio interface with single-column vertical layout
 - Handles query processing with streaming updates
 - Updates UI components in real-time
 
-**Left Column Components**:
-- Query input textbox (8vh height, min 80px, responsive)
-- Example queries dropdown
-- Submit/Clear buttons
-- Execution Progress panel (Current Agent + Active Tasks)
-  - Current Agent Status (4vh height, min 40px, responsive)
-  - Active Tasks (4vh height, min 40px, responsive)
-- Execution Timeline panel (Plotly chart, 15vh height, min 150px, responsive)
-- Progress Events panel (scrollable, 15vh height, min 150px, responsive, recent events)
-- Progress Events Log panel (scrollable, 15vh height, min 150px, responsive, all events)
+**Component Organization** (vertical flow):
 
-**Right Column Components**:
-- Tabs container with three tabs:
-  - **Analysis & Report** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
-  - **Visualizations** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
-  - **Agent Activity** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
+1. **Query Input Row**:
+   - Query input textbox (scale=3)
+   - Example queries dropdown
+   - Submit/Clear buttons
+   - Quick Tips sidebar (scale=1)
 
-**Gradio Responsive Design Implementation**:
-- Custom CSS applied via `gr.Blocks(css=responsive_css)` parameter
-- Uses viewport height (vh) units for responsive sizing
-- Minimum heights ensure usability on small screens
-- Flexbox layout for proportional space distribution
-- Components use `elem_classes` for CSS targeting
-- Fallback pixel heights maintained in Gradio `height` parameters
+2. **Progress Panel** (full width):
+   - Execution Progress section:
+     - Current Agent Status
+     - Active Tasks
+   - Progress Events section
+   - Execution Timeline (Plotly chart)
+   - Progress Events Log section
+
+3. **Result Tabs** (full width):
+   - **Analysis & Report**: Comprehensive report with citations
+   - **Visualizations**: Interactive charts (Plotly)
+   - **Agent Activity**: Execution metrics and token usage
+
+**Gradio Layout Implementation**:
+- Single-column vertical layout using `gr.Row()` and `gr.Column()` components
+- No custom CSS or height restrictions
+- Components flow naturally without scroll bars
+- Quick Tips sidebar in query input row (scale=3 and scale=1)
 
 ### 6.4 Streamlit UI Layout Structure
 
@@ -1178,4 +1184,67 @@ See Section 2.1 for complete `AgentState` structure.
 - Rate limit awareness
 - Parallel API calls where possible
 - Caching for repeated queries
+
+## 10. Future UI Design
+
+### 10.1 Planned Gradio UI Enhancement: Two-Column Horizontal Split Layout
+
+A future enhancement for the Gradio UI will implement a horizontal split-screen layout (50/50) with responsive viewport-based heights for optimal single-screen viewing:
+
+**Planned Layout**: Horizontal split-screen (50/50) for single-screen visibility
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  MyFinGPT - Multi-Agent Financial Analysis System          │
+├──────────────────────────┬──────────────────────────────────┤
+│   LEFT HALF (50%)        │   RIGHT HALF (50%)               │
+│                          │                                  │
+│  Query Input (8vh, min 80px) │  ┌──────────────────────────┐   │
+│  Example Queries            │  │ [Analysis] [Viz] [Activity]│   │
+│  [Submit] [Clear]           │  └──────────────────────────┘   │
+│                              │  │                              │
+│  Execution Progress         │  │  Tab Content (calc(100vh-250px),│
+│  - Current Agent (4vh, min 40px) │  │   min 400px, scrollable)  │
+│  - Active Tasks (4vh, min 40px) │  │                              │
+│                              │  │                              │
+│  Execution Timeline         │  │                              │
+│  (15vh, min 150px)         │  │                              │
+│                              │  │                              │
+│  Progress Events            │  │                              │
+│  (15vh, min 150px, scrollable) │  │                              │
+│                              │  │                              │
+│  Progress Events Log        │  │                              │
+│  (15vh, min 150px, scrollable) │  └──────────────────────────┘   │
+│                          │                                  │
+└──────────────────────────┴──────────────────────────────────┘
+```
+
+**Planned Left Column Components**:
+- Query input textbox (8vh height, min 80px, responsive)
+- Example queries dropdown
+- Submit/Clear buttons
+- Execution Progress panel (Current Agent + Active Tasks)
+  - Current Agent Status (4vh height, min 40px, responsive)
+  - Active Tasks (4vh height, min 40px, responsive)
+- Execution Timeline panel (Plotly chart, 15vh height, min 150px, responsive)
+- Progress Events panel (scrollable, 15vh height, min 150px, responsive, recent events)
+- Progress Events Log panel (scrollable, 15vh height, min 150px, responsive, all events)
+
+**Planned Right Column Components**:
+- Tabs container with three tabs:
+  - **Analysis & Report** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
+  - **Visualizations** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
+  - **Agent Activity** (scrollable, calc(100vh - 250px) height, min 400px, responsive)
+
+**Planned Responsive Design Implementation**:
+- Custom CSS applied via `gr.Blocks(css=responsive_css)` parameter
+- Uses viewport height (vh) units for responsive sizing
+- Minimum heights ensure usability on small screens
+- Flexbox layout for proportional space distribution
+- Components use `elem_classes` for CSS targeting
+- Fallback pixel heights maintained in Gradio `height` parameters
+- All content visible in single screen
+- Scrollable panels for long content
+
+**Note**: This enhancement is planned for future implementation. The current Gradio UI uses a single-column vertical layout.
 

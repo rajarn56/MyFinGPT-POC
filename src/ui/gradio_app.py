@@ -240,57 +240,17 @@ class MyFinGPTUI:
     
     def create_interface(self):
         """Create Gradio interface"""
-        # Custom CSS for component styling
-        responsive_css = """
-        /* Query input - responsive height */
-        .query-input {
-            height: 100px;
-        }
-        
-        /* Progress status and tasks */
-        .progress-status,
-        .progress-tasks {
-            height: 50px;
-        }
-        
-        /* Execution timeline plot - fixed height */
-        .progress-timeline {
-            height: 300px;
-        }
-        
-        /* Progress events panels - scrollable */
-        .progress-events,
-        .progress-events-log {
-            height: 200px;
-            overflow-y: auto;
-        }
-        
-        /* Tab content - scrollable */
-        .tab-content {
-            height: 600px;
-            overflow-y: auto;
-        }
-        
-        /* Ensure scrollable content works */
-        .gr-markdown,
-        .gr-plot,
-        .gr-json {
-            overflow-y: auto;
-        }
-        """
-        
-        with gr.Blocks(title="MyFinGPT - Multi-Agent Financial Analysis", theme=gr.themes.Soft(), css=responsive_css) as app:
+        with gr.Blocks(title="MyFinGPT - Multi-Agent Financial Analysis", theme=gr.themes.Soft()) as app:
             gr.Markdown("# MyFinGPT - Multi-Agent Financial Analysis System")
             gr.Markdown("Ask questions about stocks, compare companies, analyze trends, and get comprehensive financial insights.")
             
-            # Row 1: Query Input
+            # Row 1: Query Input with Quick Tips
             with gr.Row():
                 with gr.Column(scale=3):
                     query_input = gr.Textbox(
                         label="Enter your financial query",
                         placeholder="e.g., Analyze Apple Inc. (AAPL) stock",
-                        lines=3,
-                        elem_classes=["query-input"]
+                        lines=3
                     )
                     
                     with gr.Row():
@@ -302,6 +262,15 @@ class MyFinGPTUI:
                         choices=EXAMPLE_QUERIES,
                         value=None
                     )
+                
+                with gr.Column(scale=1):
+                    gr.Markdown("### Quick Tips")
+                    gr.Markdown("""
+                    - Use stock symbols (e.g., AAPL, MSFT)
+                    - Ask for comparisons (e.g., "Compare AAPL and MSFT")
+                    - Request trend analysis
+                    - Ask for sentiment analysis
+                    """)
             
             # Row 2: Progress Panel (full width)
             with gr.Row():
@@ -309,33 +278,24 @@ class MyFinGPTUI:
                     gr.Markdown("### Execution Progress")
                     progress_status = gr.Markdown(
                         value="**Current Agent:** Waiting for query...",
-                        label="Current Status",
-                        elem_classes=["progress-status"]
+                        label="Current Status"
                     )
                     progress_tasks = gr.Markdown(
                         value="**Active Tasks:** None",
-                        label="Active Tasks",
-                        elem_classes=["progress-tasks"]
+                        label="Active Tasks"
                     )
-                    
-                    gr.Markdown("### Execution Timeline")
-                    progress_timeline = gr.Plot(
-                        label="Execution Timeline",
-                        elem_classes=["progress-timeline"]
-                    )
-                    
-                    gr.Markdown("### Progress Events")
                     progress_events = gr.Markdown(
                         value="**Progress Events:**\n\nWaiting for execution...",
-                        label="Progress Events",
-                        elem_classes=["progress-events"]
+                        label="Progress Log"
+                    )
+                    progress_timeline = gr.Plot(
+                        label="Execution Timeline"
                     )
                     
                     gr.Markdown("### Progress Events Log")
                     progress_events_log = gr.Markdown(
                         value="**Progress Events Log:**\n\nWaiting for execution...",
-                        label="Progress Events Log",
-                        elem_classes=["progress-events-log"]
+                        label="Progress Events Log"
                     )
             
             # Row 3: Result Tabs (full width)
@@ -343,21 +303,18 @@ class MyFinGPTUI:
                 with gr.Tab("Analysis & Report"):
                     report_output = gr.Markdown(
                         value="# Analysis & Report\n\nEnter a query above to get started.",
-                        label="Report",
-                        elem_classes=["tab-content"]
+                        label="Report"
                     )
                 
                 with gr.Tab("Visualizations"):
                     visualization_output = gr.Plot(
-                        label="Charts and Visualizations",
-                        elem_classes=["tab-content"]
+                        label="Charts and Visualizations"
                     )
                 
                 with gr.Tab("Agent Activity"):
                     agent_activity_output = gr.JSON(
                         label="Agent Execution Metrics",
-                        value={},
-                        elem_classes=["tab-content"]
+                        value={}
                     )
             
             # Event handlers

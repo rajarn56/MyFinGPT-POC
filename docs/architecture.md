@@ -123,32 +123,30 @@ MyFinGPT supports two UI frameworks, selectable via `--ui-mode` parameter:
 
 #### Gradio UI (Default)
 
-Gradio-based web interface with horizontal split-screen layout (50/50) and responsive viewport-based heights:
+Gradio-based web interface with single-column vertical layout:
 
-**Left Column (50%)**:
-- Query input textbox (8vh height, min 80px, responsive)
-- Example queries dropdown
-- Submit/Clear buttons
-- Execution Progress panel:
-  - Current Agent Status (4vh height, min 40px, responsive)
-  - Active Tasks (4vh height, min 40px, responsive)
-- Execution Timeline panel (15vh height, min 150px, responsive, Plotly chart)
-- Progress Events panel (15vh height, min 150px, responsive, scrollable, recent events)
-- Progress Events Log panel (15vh height, min 150px, responsive, scrollable, all events)
+**Layout Structure**:
+- Query input row with Quick Tips sidebar (scale=3 and scale=1 columns)
+- Full-width progress panel below query input
+- Full-width result tabs below progress panel
 
-**Right Column (50%)**:
-- Three tabs with scrollable content (calc(100vh - 250px) height, min 400px, responsive):
+**Component Organization**:
+- **Query Input Row**: Query input textbox, Submit/Clear buttons, Example queries dropdown, Quick Tips sidebar
+- **Progress Panel** (full width):
+  - Execution Progress: Current Agent Status and Active Tasks
+  - Progress Events: Recent progress events log
+  - Execution Timeline: Plotly chart visualization
+  - Progress Events Log: Complete progress events log
+- **Result Tabs** (full width):
   - **Analysis & Report**: Comprehensive report with citations
   - **Visualizations**: Interactive charts (Plotly)
   - **Agent Activity**: Execution metrics and token usage
 
 **Gradio Features**:
 - Real-time progress updates with streaming
-- All content visible in single screen
-- Scrollable panels for long content
+- Single-column vertical layout without scroll bars
 - Interactive visualizations (Plotly)
 - Execution timeline visualization
-- **Responsive Design**: Uses custom CSS with viewport height (vh) units for adaptive sizing across different screen sizes
 - Public sharing support via `--share` flag
 
 #### Streamlit UI
@@ -590,4 +588,35 @@ Final Results
 - Efficient vector DB queries
 - Caching opportunities for repeated queries
 - Guardrails validation overhead is minimal (<1% of execution time)
+
+## 11. Future UI Design
+
+### 11.1 Planned Gradio UI Enhancement: Two-Column Horizontal Split Layout
+
+A future enhancement for the Gradio UI will implement a horizontal split-screen layout (50/50) with responsive viewport-based heights for optimal single-screen viewing:
+
+**Planned Left Column (50%)**:
+- Query input textbox (8vh height, min 80px, responsive)
+- Example queries dropdown
+- Submit/Clear buttons
+- Execution Progress panel:
+  - Current Agent Status (4vh height, min 40px, responsive)
+  - Active Tasks (4vh height, min 40px, responsive)
+- Execution Timeline panel (15vh height, min 150px, responsive, Plotly chart)
+- Progress Events panel (15vh height, min 150px, responsive, scrollable, recent events)
+- Progress Events Log panel (15vh height, min 150px, responsive, scrollable, all events)
+
+**Planned Right Column (50%)**:
+- Three tabs with scrollable content (calc(100vh - 250px) height, min 400px, responsive):
+  - **Analysis & Report**: Comprehensive report with citations
+  - **Visualizations**: Interactive charts (Plotly)
+  - **Agent Activity**: Execution metrics and token usage
+
+**Planned Features**:
+- Responsive Design: Custom CSS with viewport height (vh) units for adaptive sizing across different screen sizes
+- All content visible in single screen
+- Scrollable panels for long content
+- Optimized for single-screen viewing experience
+
+**Note**: This enhancement is planned for future implementation. The current Gradio UI uses a single-column vertical layout.
 
