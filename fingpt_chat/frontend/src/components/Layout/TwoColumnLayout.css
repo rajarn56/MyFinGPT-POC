@@ -1,0 +1,37 @@
+.two-column-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.two-column-layout__left {
+  flex: 1;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.two-column-layout__right {
+  flex: 1;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .two-column-layout {
+    flex-direction: column;
+  }
+
+  .two-column-layout__left,
+  .two-column-layout__right {
+    width: 100%;
+    height: 50vh;
+  }
+}
+

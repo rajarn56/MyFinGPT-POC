@@ -1,0 +1,24 @@
+.execution-timeline {
+  margin-bottom: 1rem;
+}
+
+.execution-timeline__header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.execution-timeline__empty {
+  color: #666;
+  font-size: 0.9rem;
+  padding: 1rem;
+  line-height: 1.5;
+}
+
+.execution-timeline__chart {
+  background-color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+

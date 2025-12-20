@@ -1,0 +1,88 @@
+.progress-events {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.progress-events__header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.progress-events__empty {
+  color: #666;
+  font-size: 0.9rem;
+  padding: 1rem;
+  line-height: 1.5;
+}
+
+.progress-events__list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progress-events__event {
+  padding: 0.5rem 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  border-left: 3px solid #007bff;
+  font-size: 0.85rem;
+}
+
+.progress-events__event-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.progress-events__event-icon {
+  font-weight: bold;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.progress-events__event-agent {
+  font-weight: 600;
+  color: #007bff;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.progress-events__event-message {
+  color: #333;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-events__event-integration {
+  color: #666;
+  font-size: 0.75rem;
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+.progress-events__event-error {
+  color: #dc3545;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.progress-events__event-time {
+  margin-left: auto;
+  color: #666;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+

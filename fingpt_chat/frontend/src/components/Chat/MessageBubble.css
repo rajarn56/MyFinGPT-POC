@@ -1,0 +1,131 @@
+.message-bubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  margin-bottom: 0.5rem;
+}
+
+.message-bubble--user {
+  align-self: flex-end;
+}
+
+.message-bubble--assistant {
+  align-self: flex-start;
+}
+
+.message-bubble__content {
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  word-wrap: break-word;
+}
+
+.message-bubble--user .message-bubble__content {
+  background-color: #007bff;
+  color: white;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.message-bubble--assistant .message-bubble__content {
+  background-color: #f0f0f0;
+  color: #213547;
+  border-bottom-left-radius: 0.25rem;
+}
+
+.message-bubble__text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.message-bubble__markdown {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.message-bubble__markdown h1,
+.message-bubble__markdown h2,
+.message-bubble__markdown h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-bubble__markdown h1 {
+  font-size: 1.5rem;
+}
+
+.message-bubble__markdown h2 {
+  font-size: 1.25rem;
+}
+
+.message-bubble__markdown h3 {
+  font-size: 1.1rem;
+}
+
+.message-bubble__markdown p {
+  margin: 0.5rem 0;
+}
+
+.message-bubble__markdown ul,
+.message-bubble__markdown ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.message-bubble__markdown code {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+
+.message-bubble__markdown pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+.message-bubble__markdown pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.message-bubble__markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.message-bubble__markdown th,
+.message-bubble__markdown td {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.message-bubble__markdown th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.message-bubble__footer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.message-bubble--user .message-bubble__footer {
+  justify-content: flex-end;
+}
+
+.message-bubble__timestamp {
+  opacity: 0.7;
+}
+
+.message-bubble__citations {
+  opacity: 0.7;
+}
+
